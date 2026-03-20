@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════
+   takeonanything.com — shared styles
+   ═══════════════════════════════════════════ */
+
+:root {
+  --bg: #0d0d12;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+  --text-1: #e8e8ed;
+  --text-2: #8a8a9a;
+  --text-3: #4e4e5e;
+  --accent: #ff4d6a;
+  --accent-hover: #ff6b84;
+  --accent-dim: rgba(255, 77, 106, 0.12);
+  --border: #252530;
+  --radius: 6px;
+  --max-w: 720px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: var(--accent); text-decoration: none; transition: color 0.12s; }
+a:hover { color: var(--accent-hover); }
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--max-w);
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 0;
+}
+
+.site-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.3px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.site-logo .dim { color: var(--text-3); font-weight: 400; }
+
+.site-nav { display: flex; gap: 20px; }
+.site-nav a { font-size: 13px; font-weight: 500; color: var(--text-2); }
+.site-nav a:hover { color: var(--text-1); }
+
+.site-main {
+  flex: 1;
+  max-width: var(--max-w);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.hero { padding: 64px 0 40px; }
+.hero h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 12px; }
+.hero h1 .accent { color: var(--accent); }
+.hero p { font-size: 16px; color: var(--text-2); line-height: 1.6; max-width: 540px; }
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding-bottom: 48px;
+}
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: background 0.15s, border-color 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.tool-card:hover { background: var(--bg-card-hover); border-color: var(--accent); color: inherit; }
+
+.tool-card .tool-icon {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-dim); border-radius: var(--radius);
+  margin-bottom: 14px; color: var(--accent);
+}
+.tool-card .tool-icon svg { width: 18px; height: 18px; }
+
+.tool-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.2px; }
+.tool-card p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.tool-card .tool-tag {
+  margin-top: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-3); font-weight: 500;
+}
+
+.tool-card.coming-soon { opacity: 0.5; pointer-events: none; }
+.tool-card.coming-soon .tool-tag { color: var(--accent); opacity: 0.7; }
+
+.page-content { padding: 48px 0 64px; }
+.page-content h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 8px; }
+.page-content .subtitle { font-size: 14px; color: var(--text-3); margin-bottom: 32px; }
+.page-content h2 { font-size: 18px; font-weight: 600; margin: 28px 0 10px; letter-spacing: -0.2px; }
+.page-content p { font-size: 15px; color: var(--text-2); line-height: 1.7; margin-bottom: 14px; }
+.page-content ul { list-style: none; margin-bottom: 14px; }
+.page-content ul li {
+  font-size: 15px; color: var(--text-2); line-height: 1.7;
+  padding-left: 16px; position: relative;
+}
+.page-content ul li::before { content: '—'; position: absolute; left: 0; color: var(--text-3); }
+.page-content a { color: var(--accent); }
+
+.site-footer {
+  max-width: var(--max-w);
+  width: 100%; margin: 0 auto;
+  padding: 20px 20px 28px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--text-3);
+}
+.site-footer .footer-links { display: flex; gap: 16px; }
+.site-footer .footer-links a { color: var(--text-3); font-size: 12px; }
+.site-footer .footer-links a:hover { color: var(--text-2); }
+.site-footer .footer-copy { font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+
+@media (max-width: 640px) {
+  .hero { padding: 40px 0 28px; }
+  .hero h1 { font-size: 24px; }
+  .tools-grid { grid-template-columns: 1fr; }
+  .site-header { padding-top: 16px; }
+  .site-nav { gap: 14px; }
+  .site-nav a { font-size: 12px; }
+}
