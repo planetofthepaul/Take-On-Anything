@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Word Counter &amp; Character Counter | Take On Anything</title>
+<meta name="description" content="Free word counter and character counter with live counts for words, characters, characters without spaces, sentences, paragraphs, and reading time.">
+<link rel="canonical" href="https://takeonanything.com/word-counter/">
+<meta property="og:title" content="Free Word Counter &amp; Character Counter | Take On Anything">
+<meta property="og:description" content="Free word counter and character counter with live counts for words, characters, characters without spaces, sentences, paragraphs, and reading time.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://takeonanything.com/word-counter/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+
+<style>
+:root{--bg:#fefcf9;--card:#fff;--text:#2a2a2a;--text2:#666;--text3:#999;--accent:#ff5252;--ah:#e03030;--as:#fff0f0;--border:#eee;--r:10px;--max:900px}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}a:hover{color:var(--ah)}
+button,input,textarea{font:inherit}
+.w{max-width:var(--max);width:100%;margin:0 auto;padding:0 20px}
+.hdr{padding:20px 0 0;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:800;font-size:15px;color:var(--accent);text-decoration:none;letter-spacing:-.3px}.logo span{color:var(--text3);font-weight:400}
+.nav{display:flex;gap:16px;flex-wrap:wrap}.nav a{font-size:14px;font-weight:600;color:var(--text2)}.nav a:hover{color:var(--text)}
+.hero{padding:20px 0 12px}.hero h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.2}.hero p{font-size:16px;color:var(--text2);margin-top:8px;line-height:1.6;max-width:700px}
+.tool{margin:8px 0 24px}
+.ta{width:100%;min-height:280px;padding:16px;border:2px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--text);outline:none;resize:vertical;line-height:1.6;transition:border-color .15s}
+.ta:focus{border-color:var(--accent)}
+.actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 14px}
+.helper{font-size:13px;color:var(--text3)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{appearance:none;border:1px solid var(--border);background:var(--card);color:var(--text2);padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .12s}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--as)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.stat .k{font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.stat .v{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-top:6px}
+.stat .s{font-size:13px;color:var(--text3);margin-top:4px}
+.seo{padding:28px 0}.seo h2{font-size:20px;font-weight:800;margin:20px 0 8px;letter-spacing:-.3px}.seo p{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:12px}
+.related{padding:0 0 28px}.related h2{font-size:16px;font-weight:800;margin-bottom:12px;color:var(--text2)}
+.rl{display:flex;flex-wrap:wrap;gap:8px}
+.rla{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);font-size:14px;font-weight:600;color:var(--text);text-decoration:none;transition:border-color .12s,background .12s}
+.rla:hover{border-color:var(--accent);background:var(--as);color:var(--text)}
+.ft{padding:20px 0 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text3)}
+.ft a{color:var(--text3);font-size:13px;text-decoration:none}.ft a:hover{color:var(--text2)}.ftl{display:flex;gap:16px;flex-wrap:wrap}.ftc{font-size:11px}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.hero h1{font-size:24px}.grid{grid-template-columns:1fr}.actions{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body><div class="w">
+<header class="hdr">
+<a href="/" class="logo">takeonanything<span>.com</span></a>
+<nav class="nav"><a href="/">Home</a><a href="/emoji/">Emoji</a><a href="/symbols/">Symbols</a></nav>
+</header>
+
+<section class="hero">
+<h1>Free Word Counter &amp; Character Counter</h1>
+<p>Paste or type text below to count words, characters, characters without spaces, sentences, paragraphs, and reading time. Looking for symbols or emojis too? Try <a href="/symbols/">symbols</a> or the <a href="/emoji/">emoji keyboard</a>.</p>
+</section>
+
+<section class="tool">
+<textarea id="text" class="ta" placeholder="Type or paste your text here..."></textarea>
+
+<div class="actions">
+<div class="helper">Counts update automatically as you type.</div>
+<div class="btns">
+<button class="btn" id="clearBtn" type="button">Clear</button>
+<button class="btn" id="copyBtn" type="button">Copy Text</button>
+<button class="btn" id="sampleBtn" type="button">Load Sample</button>
+</div>
+</div>
+
+<div class="grid">
+<div class="stat"><div class="k">Words</div><div class="v" id="words">0</div><div class="s">Split by spaces</div></div>
+<div class="stat"><div class="k">Characters</div><div class="v" id="characters">0</div><div class="s">Including spaces</div></div>
+<div class="stat"><div class="k">Characters No Spaces</div><div class="v" id="charactersNoSpaces">0</div><div class="s">Spaces removed</div></div>
+<div class="stat"><div class="k">Sentences</div><div class="v" id="sentences">0</div><div class="s">Based on punctuation</div></div>
+<div class="stat"><div class="k">Paragraphs</div><div class="v" id="paragraphs">0</div><div class="s">Separated by blank lines</div></div>
+<div class="stat"><div class="k">Reading Time</div><div class="v" id="readingTime">0 min</div><div class="s">Estimated at 200 wpm</div></div>
+</div>
+</section>
+
+<section class="seo">
+<h2>What This Counts</h2>
+<p>This tool counts words, characters, characters without spaces, sentences, and paragraphs. It also gives a simple reading-time estimate based on word count. That makes it useful for essays, blog posts, captions, product descriptions, emails, resumes, and anything else with a length limit.</p>
+
+<h2>Word Count and Character Count in One Place</h2>
+<p>Some tools only show a word count. Some only show character count. This one does both and updates instantly while you type or paste. If you need to stay under a character limit, trim an article to a target length, or check how long something is before posting it, this gives you the numbers quickly.</p>
+
+<h2>How It Works</h2>
+<p>Word count is based on text separated by spaces. Character count includes everything in the box, including spaces and line breaks. Characters without spaces removes all whitespace first. Sentence count uses ending punctuation like periods, question marks, and exclamation points. Paragraph count is based on blank lines between blocks of text. Reading time is estimated from total word count using 200 words per minute.</p>
+</section>
+
+<section class="related">
+<h2>More Free Tools</h2>
+<div class="rl">
+<a class="rla" href="/symbols/">Symbols</a>
+<a class="rla" href="/emoji/">Emoji Keyboard</a>
+<a class="rla" href="/code-editor/">Code Editor</a>
+</div>
+</section>
+
+<footer class="ft">
+<div class="ftl"><a href="/">Home</a><a href="/emoji/">Emoji</a><a href="/symbols/">Symbols</a><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div>
+<span class="ftc">&copy; 2025 takeonanything.com</span>
+</footer></div>
+
+<script>
+(function(){
+'use strict';
+
+var textEl=document.getElementById('text');
+var wordsEl=document.getElementById('words');
+var charsEl=document.getElementById('characters');
+var charsNoSpacesEl=document.getElementById('charactersNoSpaces');
+var sentencesEl=document.getElementById('sentences');
+var paragraphsEl=document.getElementById('paragraphs');
+var readingTimeEl=document.getElementById('readingTime');
+var clearBtn=document.getElementById('clearBtn');
+var copyBtn=document.getElementById('copyBtn');
+var sampleBtn=document.getElementById('sampleBtn');
+
+function countWords(text){
+  var trimmed=text.trim();
+  if(!trimmed) return 0;
+  return trimmed.split(/\s+/).length;
+}
+
+function countSentences(text){
+  var trimmed=text.trim();
+  if(!trimmed) return 0;
+  var matches=trimmed.match(/[^.!?]+[.!?]+|[^.!?]+$/g);
+  return matches?matches.length:0;
+}
+
+function countParagraphs(text){
+  var trimmed=text.trim();
+  if(!trimmed) return 0;
+  return trimmed.split(/\n\s*\n+/).filter(function(p){return p.trim().length>0}).length;
+}
+
+function formatReadingTime(words){
+  if(words===0) return '0 min';
+  var mins=Math.max(1,Math.ceil(words/200));
+  return mins+' min';
+}
+
+function updateCounts(){
+  var text=textEl.value;
+  var words=countWords(text);
+  var chars=text.length;
+  var charsNoSpaces=text.replace(/\s/g,'').length;
+  var sentences=countSentences(text);
+  var paragraphs=countParagraphs(text);
+
+  wordsEl.textContent=words.toLocaleString();
+  charsEl.textContent=chars.toLocaleString();
+  charsNoSpacesEl.textContent=charsNoSpaces.toLocaleString();
+  sentencesEl.textContent=sentences.toLocaleString();
+  paragraphsEl.textContent=paragraphs.toLocaleString();
+  readingTimeEl.textContent=formatReadingTime(words);
+}
+
+function copyText(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise(function(resolve,reject){
+    var a=document.createElement('textarea');
+    a.value=text;
+    a.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(a);
+    a.select();
+    try{document.execCommand('copy');resolve()}catch(e){reject(e)}
+    document.body.removeChild(a);
+  });
+}
+
+textEl.addEventListener('input',updateCounts);
+
+clearBtn.addEventListener('click',function(){
+  textEl.value='';
+  updateCounts();
+  textEl.focus();
+});
+
+copyBtn.addEventListener('click',function(){
+  copyText(textEl.value).then(function(){
+    var old=copyBtn.textContent;
+    copyBtn.textContent='Copied';
+    setTimeout(function(){copyBtn.textContent=old},900);
+  }).catch(function(){});
+});
+
+sampleBtn.addEventListener('click',function(){
+  textEl.value='This is a sample paragraph for the word counter.\n\nIt shows word count, character count, sentence count, paragraph count, and reading time in one place.';
+  updateCounts();
+});
+
+updateCounts();
+})();
+</script>
+</body></html>
