@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chronos — A Daily Order Puzzle</title>
+
+<style>
+:root {
+    --bg: #ffffff;
+    --card-bg: #f8f9fa;
+    --text-main: #121212;
+    --text-muted: #5a5a5a;
+    --nyt-line: #e2e2e2;
+    --nyt-dark: #121212;
+    
+    /* Feedback Colors */
+    --correct-bg: #6aaa64;
+    --correct-text: #ffffff;
+    --incorrect-bg: #e35252;
+    --incorrect-text: #ffffff;
+    
+    --font-serif: "Imperial", Georgia, serif;
+    --font-sans: "Franklin Standard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    padding: 0 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 500px;
+    margin-top: 24px;
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* NYT Traditional Game Header */
+header {
+    text-align: center;
+    border-bottom: 1px solid var(--nyt-line);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+h1 {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    font-family: var(--font-sans);
+    color: var(--text-muted);
+    font-size: 14px;
+    letter-spacing: 0.2px;
+}
+
+/* Layout for Sidebar Labels + Timeline */
+.board-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* Vertical Directional Indicator (Left Column) */
+.axis-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 60px;
+    flex-shrink: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.axis-label-text {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.axis-line {
+    flex-grow: 1;
+    width: 1px;
+    background-color: #bcbcbc;
+    margin: 12px 0;
+}
+
+/* The Timeline Board (Right Column) */
+.timeline {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Cards / Puzzle Items */
+.item {
+    background-color: #ffffff;
+    border: 1px solid var(--nyt-line);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.3s ease, border-color 0.3s ease, filter 0.2s ease;
+}
+
+.item:hover {
+    background-color: #f1f3f5;
+    border-color: #bcbcbc;
+}
+
+.item:active {
+    cursor: grabbing;
+}
+
+.item.dragging {
+    opacity: 0.4;
+    transform: scale(0.98);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.emoji {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.text {
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+}
+
+/* Handle indicator */
+.drag-handle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    width: 16px;
+    height: 16px;
+}
+.drag-handle span {
+    height: 2px;
+    background-color: #bcbcbc;
+    width: 12px;
+    border-radius: 1px;
+}
+
+/* Styled System Buttons */
+.action-btn {
+    width: 100%;
+    background-color: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--text-main);
+    border-radius: 24px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.action-btn:hover:not(:disabled) {
+    background-color: var(--nyt-dark);
+    color: #ffffff;
+}
+
+.action-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Results Section */
+.result-panel {
+    display: none;
+    margin-top: 28px;
+    padding: 24px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--nyt-line);
+}
+
+.result-heading {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.score-display {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+/* Mini visual blocks for results */
+.visual-grid {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+.grid-block {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+}
+.grid-block.correct { background-color: var(--correct-bg); }
+.grid-block.incorrect { background-color: var(--incorrect-bg); }
+
+/* Educational Helper Callout */
+.helper-callout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #f1f8ff;
+    border: 1px solid #cce5ff;
+    color: #004085;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 24px;
+    text-align: left;
+    line-height: 1.4;
+}
+.helper-callout strong {
+    font-weight: 600;
+}
+.helper-emoji {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+/* Social Sharing Buttons */
+.social-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.share-btn {
+    color: #ffffff;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    transition: opacity 0.2s ease;
+    flex: 1;
+    justify-content: center;
+    max-width: 180px;
+}
+
+.share-btn:hover {
+    opacity: 0.85;
+}
+
+.btn-facebook {
+    background-color: #1877F2;
+}
+
+.btn-substack {
+    background-color: #FF6719;
+}
+
+/* Utility State Modification on game completion */
+.item.eval-correct {
+    background-color: var(--correct-bg) !important;
+    color: var(--correct-text) !important;
+    border-color: var(--correct-bg) !important;
+}
+.item.eval-incorrect {
+    background-color: var(--incorrect-bg) !important;
+    color: var(--incorrect-text) !important;
+    border-color: var(--incorrect-bg) !important;
+}
+.item.locked-card:hover {
+    transform: scale(1.02);
+    filter: brightness(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<div class="game-container">
+
+    <header>
+        <h1>Chronos</h1>
+        <div class="subtitle">Organize history from past to present</div>
+    </header>
+
+    <div class="board-wrapper">
+        <div class="axis-column">
+            <div class="axis-label-text">Oldest</div>
+            <div class="axis-line"></div>
+            <div class="axis-label-text">Newest</div>
+        </div>
+
+        <div id="timeline" class="timeline"></div>
+    </div>
+
+    <button id="submit-btn" class="action-btn" onclick="lockIn()">Submit Timeline</button>
+
+    <div class="result-panel" id="result-panel">
+        <div class="result-heading" id="result-title">Good Effort!</div>
+        <div class="score-display" id="score-text"></div>
+        <div id="visual-grid" class="visual-grid"></div>
+        
+        <div class="helper-callout">
+            <div class="helper-emoji">💡</div>
+            <div><strong>Keep exploring:</strong> Tap any historical event on the board above to read its full Wikipedia article.</div>
+        </div>
+
+        <div class="social-buttons">
+            <button class="share-btn btn-facebook" onclick="shareToFacebook()">
+                Share on Facebook
+            </button>
+            <button class="share-btn btn-substack" onclick="shareToSubstack()">
+                Share to Substack
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ==========================================
+// GAME DATA: UPDATE THESE TO CHANGE THE GAME
+// ==========================================
+const data = [
+    {id:1, emoji:"🐪", event:"Construction of Great Pyramids", year:-2560, wiki:"https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"},
+    {id:2, emoji:"📜", event:"Sealing of the Magna Carta", year:1215, wiki:"https://en.wikipedia.org/wiki/Magna_Carta"},
+    {id:3, emoji:"🖨️", event:"Invention of the Printing Press", year:1440, wiki:"https://en.wikipedia.org/wiki/Printing_press"},
+    {id:4, emoji:"🇫🇷", event:"The French Revolution Begins", year:1789, wiki:"https://en.wikipedia.org/wiki/French_Revolution"},
+    {id:5, emoji:"🌕", event:"Apollo 11 Moon Landing", year:1969, wiki:"https://en.wikipedia.org/wiki/Apollo_11"},
+    {id:6, emoji:"📱", event:"Apple Unveils the First iPhone", year:2007, wiki:"https://en.wikipedia.org/wiki/History_of_the_iPhone"}
+];
+// ==========================================
+
+let state = [];
+let locked = false;
+
+function shuffle(array) {
+    return [...array].sort(() => Math.random() - 0.5);
+}
+
+function init() {
+    state = shuffle(data);
+    render();
+    setupDragAndDrop();
+}
+
+function render() {
+    const el = document.getElementById("timeline");
+    el.innerHTML = "";
+
+    state.forEach(item => {
+        const d = document.createElement("div");
+        d.className = "item";
+        d.draggable = true;
+        d.dataset.id = item.id;
+
+        d.innerHTML = `
+            <div class="card-content">
+                <span class="emoji">${item.emoji}</span>
+                <span class="text">${item.event}</span>
+            </div>
+            <div class="drag-handle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+
+        el.appendChild(d);
+    });
+}
+
+function setupDragAndDrop() {
+    const container = document.getElementById("timeline");
+
+    container.addEventListener("dragstart", e => {
+        if (locked) return;
+        const targetItem = e.target.closest('.item');
+        if (targetItem) targetItem.classList.add("dragging");
+    });
+
+    container.addEventListener("dragend", e => {
+        const targetItem = e.target.closest('.item');
+        if (targetItem) targetItem.classList.remove("dragging");
+        syncState();
+    });
+
+    container.addEventListener("dragover", e => {
+        if (locked) return;
+        e.preventDefault();
+
+        const dragging = document.querySelector(".dragging");
+        if (!dragging) return;
+
+        const afterElement = getDragAfterElement(container, e.clientY);
+        if (afterElement == null) {
+            container.appendChild(dragging);
+        } else {
+            container.insertBefore(dragging, afterElement);
+        }
+    });
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll(".item:not(.dragging)")];
+
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: -Infinity }).element;
+}
+
+function syncState() {
+    const cards = [...document.querySelectorAll(".item")];
+    state = cards.map(c => data.find(d => d.id == c.dataset.id));
+}
+
+function lockIn() {
+    if (locked) return;
+    locked = true;
+
+    // Mathematical sorting
+    const correctOrder = [...data].sort((a, b) => a.year - b.year);
+    const cards = [...document.querySelectorAll(".item")];
+
+    let correctCount = 0;
+    let gridHTML = "";
+    let shareBlocks = "";
+
+    cards.forEach((card, index) => {
+        card.draggable = false;
+        const currentItem = data.find(d => d.id == card.dataset.id);
+
+        // Swap the drag handle lines for an external link icon
+        const handle = card.querySelector('.drag-handle');
+        handle.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`;
+        handle.style.color = "rgba(255, 255, 255, 0.9)";
+        
+        // Turn card into a clickable link
+        card.classList.add('locked-card');
+        card.style.cursor = "pointer";
+        card.title = "Click to read more on Wikipedia";
+        card.onclick = () => window.open(currentItem.wiki, '_blank');
+
+        if (currentItem.id === correctOrder[index].id) {
+            card.classList.add("eval-correct");
+            gridHTML += `<div class="grid-block correct"></div>`;
+            shareBlocks += "🟩";
+            correctCount++;
+        } else {
+            card.classList.add("eval-incorrect");
+            gridHTML += `<div class="grid-block incorrect"></div>`;
+            shareBlocks += "🟥";
+        }
+    });
+
+    let performanceTitle = "Keep Studying!";
+    if (correctCount === data.length) performanceTitle = "Perfect Chronology!";
+    else if (correctCount >= data.length / 2) performanceTitle = "Splendid Record!";
+
+    document.getElementById("submit-btn").disabled = true;
+    document.getElementById("result-title").innerText = performanceTitle;
+    document.getElementById("score-text").innerText = `You correctly placed ${correctCount} out of ${data.length} historical landmarks.`;
+    document.getElementById("visual-grid").innerHTML = gridHTML;
+    
+    // Save raw text layout globally for the social sharing functions
+    window.latestShareData = `Chronos Game — ${correctCount}/${data.length}\n${shareBlocks}`;
+    
+    document.getElementById("result-panel").style.display = "block";
+    document.getElementById("result-panel").scrollIntoView({ behavior: 'smooth' });
+}
+
+// Social Sharing Functions
+function shareToFacebook() {
+    const currentUrl = window.location.href;
+    const shareText = window.latestShareData;
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}&quote=${encodeURIComponent(shareText)}`;
+    window.open(fbUrl, '_blank', 'width=600,height=500');
+}
+
+function shareToSubstack() {
+    const currentUrl = window.location.href;
+    const shareText = window.latestShareData + "\n\nPlay here: " + currentUrl;
+    const substackUrl = `https://substack.com/notes/new?text=${encodeURIComponent(shareText)}`;
+    window.open(substackUrl, '_blank', 'width=600,height=600');
+}
+
+init();
+</script>
+
+</body>
+</html>
