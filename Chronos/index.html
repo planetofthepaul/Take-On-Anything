@@ -12,7 +12,7 @@
   plausible.init()
 </script>
 
-<!-- FIX: mobile-friendly drag reorder -->
+<!-- Mobile-friendly drag reorder -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <style>
@@ -39,6 +39,7 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 header { text-align: center; border-bottom: 1px solid var(--nyt-line); padding-bottom: 16px; margin-bottom: 24px; }
 h1 { font-family: var(--font-serif); font-size: 36px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-main); margin-bottom: 4px; }
 .subtitle { font-family: var(--font-sans); color: var(--text-muted); font-size: 14px; letter-spacing: 0.2px; }
+.date-line { font-family: var(--font-sans); color: var(--text-muted); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin-top: 8px; }
 
 .board-wrapper { display: flex; flex-direction: row; gap: 16px; margin-bottom: 24px; }
 .axis-column { display: flex; flex-direction: column; justify-content: space-between; align-items: center; width: 60px; flex-shrink: 0; padding-top: 20px; padding-bottom: 20px; }
@@ -49,9 +50,11 @@ h1 { font-family: var(--font-serif); font-size: 36px; font-weight: 700; letter-s
 .item { background-color: #ffffff; border: 1px solid var(--nyt-line); border-radius: 6px; padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: grab; user-select: none; transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.3s ease, border-color 0.3s ease, filter 0.2s ease; }
 .item.dragging { opacity: 0.4; transform: scale(0.98); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
-.card-content { display: flex; align-items: center; gap: 12px; }
+.card-content { display: flex; align-items: center; gap: 12px; flex-grow: 1; }
 .emoji { font-size: 20px; flex-shrink: 0; }
+.text-block { display: flex; flex-direction: column; gap: 2px; }
 .text { font-size: 16px; font-weight: 500; letter-spacing: -0.2px; }
+.year-reveal { font-size: 12px; font-weight: 600; opacity: 0.9; letter-spacing: 0.3px; }
 
 .drag-handle { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; width: 20px; height: 20px; }
 .drag-handle span { height: 2px; background-color: #bcbcbc; width: 12px; border-radius: 1px; }
@@ -81,6 +84,7 @@ h1 { font-family: var(--font-serif); font-size: 36px; font-weight: 700; letter-s
     <header>
         <h1>Chronos</h1>
         <div class="subtitle">Organize history from past to present</div>
+        <div class="date-line" id="date-line"></div>
     </header>
 
     <div class="board-wrapper">
@@ -109,16 +113,40 @@ h1 { font-family: var(--font-serif); font-size: 36px; font-weight: 700; letter-s
 </div>
 
 <script>
+// ===== TODAY'S PUZZLE =====
+// To change the puzzle, replace this `data` array with one of your saved batches.
 const data = [
-    {id:1, emoji:"🐪", event:"Construction of Great Pyramids", year:-2560, wiki:"https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"},
-    {id:2, emoji:"📜", event:"Sealing of the Magna Carta", year:1215, wiki:"https://en.wikipedia.org/wiki/Magna_Carta"},
-    {id:3, emoji:"🖨️", event:"Invention of the Printing Press", year:1440, wiki:"https://en.wikipedia.org/wiki/Printing_press"},
-    {id:4, emoji:"🇫🇷", event:"The French Revolution Begins", year:1789, wiki:"https://en.wikipedia.org/wiki/French_Revolution"},
-    {id:5, emoji:"🌕", event:"Apollo 11 Moon Landing", year:1969, wiki:"https://en.wikipedia.org/wiki/Apollo_11"},
-    {id:6, emoji:"📱", event:"Apple Unveils the First iPhone", year:2007, wiki:"https://en.wikipedia.org/wiki/History_of_the_iPhone"}
+    {id:1, emoji:"🗿", event:"Construction of Stonehenge begins", year:-3000, wiki:"https://en.wikipedia.org/wiki/Stonehenge"},
+    {id:2, emoji:"🐪", event:"Construction of Great Pyramids", year:-2560, wiki:"https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"},
+    {id:3, emoji:"⚖️", event:"Code of Hammurabi is written", year:-1754, wiki:"https://en.wikipedia.org/wiki/Code_of_Hammurabi"},
+    {id:4, emoji:"🏛️", event:"Parthenon completed in Athens", year:-438, wiki:"https://en.wikipedia.org/wiki/Parthenon"},
+    {id:5, emoji:"🌋", event:"Eruption of Mount Vesuvius destroys Pompeii", year:79, wiki:"https://en.wikipedia.org/wiki/Eruption_of_Mount_Vesuvius_in_79_AD"},
+    {id:6, emoji:"⛪", event:"Fall of the Western Roman Empire", year:476, wiki:"https://en.wikipedia.org/wiki/Fall_of_the_Western_Roman_Empire"}
 ];
+// ==========================
 
-let state = [...data].sort(() => Math.random() - 0.5);
+// Show today's date in the header
+document.getElementById("date-line").innerText = new Date().toLocaleDateString(undefined, {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+});
+
+// Format a year as "3000 BC" or "1969 AD"
+function formatYear(y) {
+    if (y < 0) return Math.abs(y) + " BC";
+    return y + " AD";
+}
+
+// Shuffle, but make sure it's not already in the correct order
+function shuffleData() {
+    const correctIds = [...data].sort((a, b) => a.year - b.year).map(d => d.id);
+    let shuffled;
+    do {
+        shuffled = [...data].sort(() => Math.random() - 0.5);
+    } while (shuffled.every((item, i) => item.id === correctIds[i]));
+    return shuffled;
+}
+
+let state = shuffleData();
 let shareString = "";
 
 function render() {
@@ -133,7 +161,9 @@ function render() {
         d.innerHTML = `
             <div class="card-content">
                 <span class="emoji">${item.emoji}</span>
-                <span class="text">${item.event}</span>
+                <div class="text-block">
+                    <span class="text">${item.event}</span>
+                </div>
             </div>
             <div class="drag-handle">
                 <span></span><span></span><span></span>
@@ -143,7 +173,6 @@ function render() {
         el.appendChild(d);
     });
 
-    // FIX: enable mobile + desktop drag reorder
     new Sortable(el, {
         animation: 150,
         ghostClass: "dragging"
@@ -167,6 +196,14 @@ function lockIn() {
         card.style.cursor = "pointer";
         card.onclick = () => window.open(item.wiki, '_blank');
 
+        // Reveal the year on each card
+        const textBlock = card.querySelector('.text-block');
+        const yearEl = document.createElement('span');
+        yearEl.className = 'year-reveal';
+        yearEl.innerText = formatYear(item.year);
+        textBlock.appendChild(yearEl);
+
+        // Swap drag handle for an external-link icon
         const handle = card.querySelector('.drag-handle');
         handle.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`;
 
