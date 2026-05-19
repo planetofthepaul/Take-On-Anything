@@ -157,7 +157,7 @@ function lockIn() {
 
     let correctCount = 0;
     let gridHTML = "";
-    shareString = "Chronos History Puzzle:\n";
+    shareString = "Today's Chronos History Puzzle:\n";
 
     cards.forEach((card, index) => {
         const item = data.find(d => d.id == card.dataset.id);
@@ -175,7 +175,7 @@ function lockIn() {
         if(isCorrect) correctCount++;
     });
 
-    shareString += "\n\nPlay here: " + window.location.href;
+    shareString += "\n\nSee if you can beat me here: " + window.location.href;
 
     let performanceTitle = "Keep Studying!";
     if (correctCount === data.length) performanceTitle = "Perfect Chronology!";
