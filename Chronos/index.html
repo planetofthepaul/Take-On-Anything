@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Chronos — A Daily History Puzzle</title>
 
-    <!-- Privacy-friendly analytics by Plausible -->
+<!-- Privacy-friendly analytics by Plausible -->
 <script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
 <script>
   window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init()
 </script>
 
+<!-- FIX: mobile-friendly drag reorder -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <style>
 :root {
@@ -66,7 +68,7 @@ h1 { font-family: var(--font-serif); font-size: 36px; font-weight: 700; letter-s
 .grid-block.correct { background-color: var(--correct-bg); }
 .grid-block.incorrect { background-color: var(--incorrect-bg); }
 
-.helper-callout { display: flex; align-items: center; gap: 12px; background-color: #f1f8ff; border: 1px solid #cce5ff; color: #004085; padding: 14px 16px; border-radius: 8px; font-size: 14px; font-weight: 400; margin-bottom: 24px; text-align: left; line-height: 1.4; }
+.helper-callout { display: flex; align-items: center; gap: 12px; background-color: #f1f8ff; border: 1px solid #cce5ff; color: #004085; padding: 14px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 24px; text-align: left; line-height: 1.4; }
 .helper-emoji { font-size: 20px; flex-shrink: 0; }
 
 .item.eval-correct { background-color: var(--correct-bg) !important; color: var(--correct-text) !important; border-color: var(--correct-bg) !important; }
@@ -96,7 +98,7 @@ h1 { font-family: var(--font-serif); font-size: 36px; font-weight: 700; letter-s
         <div class="result-heading" id="result-title"></div>
         <div class="score-display" id="score-text"></div>
         <div id="visual-grid" class="visual-grid"></div>
-        
+
         <div class="helper-callout">
             <div class="helper-emoji">💡</div>
             <div><strong>Keep exploring:</strong> Tap any historical event on the board above to read its full Wikipedia article.</div>
@@ -122,11 +124,12 @@ let shareString = "";
 function render() {
     const el = document.getElementById("timeline");
     el.innerHTML = "";
+
     state.forEach(item => {
         const d = document.createElement("div");
         d.className = "item";
-        d.draggable = true;
         d.dataset.id = item.id;
+
         d.innerHTML = `
             <div class="card-content">
                 <span class="emoji">${item.emoji}</span>
@@ -136,42 +139,34 @@ function render() {
                 <span></span><span></span><span></span>
             </div>
         `;
-        d.addEventListener("dragstart", () => d.classList.add("dragging"));
-        d.addEventListener("dragend", () => d.classList.remove("dragging"));
+
         el.appendChild(d);
     });
-}
 
-document.getElementById("timeline").addEventListener("dragover", e => {
-    e.preventDefault();
-    const dragging = document.querySelector(".dragging");
-    const after = [...document.querySelectorAll(".item:not(.dragging)")].reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = e.clientY - box.top - box.height / 2;
-        return offset < 0 && offset > closest.offset ? { offset, element: child } : closest;
-    }, { offset: -Infinity }).element;
-    after ? document.getElementById("timeline").insertBefore(dragging, after) : document.getElementById("timeline").appendChild(dragging);
-});
+    // FIX: enable mobile + desktop drag reorder
+    new Sortable(el, {
+        animation: 150,
+        ghostClass: "dragging"
+    });
+}
 
 function lockIn() {
     document.getElementById("submit-btn").disabled = true;
     const correctOrder = [...data].sort((a, b) => a.year - b.year);
     const cards = [...document.querySelectorAll(".item")];
-    
+
     let correctCount = 0;
     let gridHTML = "";
     shareString = "Chronos History Puzzle:\n";
 
     cards.forEach((card, index) => {
-        card.draggable = false;
         const item = data.find(d => d.id == card.dataset.id);
         const isCorrect = (item.id === correctOrder[index].id);
-        
+
         card.classList.add(isCorrect ? "eval-correct" : "eval-incorrect");
         card.style.cursor = "pointer";
         card.onclick = () => window.open(item.wiki, '_blank');
-        
-        // Add External Link Icon
+
         const handle = card.querySelector('.drag-handle');
         handle.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`;
 
@@ -180,7 +175,6 @@ function lockIn() {
         if(isCorrect) correctCount++;
     });
 
-    // Add the URL to the share string
     shareString += "\n\nPlay here: " + window.location.href;
 
     let performanceTitle = "Keep Studying!";
@@ -188,7 +182,8 @@ function lockIn() {
     else if (correctCount >= data.length / 2) performanceTitle = "Splendid Record!";
 
     document.getElementById("result-title").innerText = performanceTitle;
-    document.getElementById("score-text").innerText = `You correctly placed ${correctCount} out of ${data.length} historical landmarks.`;
+    document.getElementById("score-text").innerText =
+        `You correctly placed ${correctCount} out of ${data.length} historical landmarks.`;
     document.getElementById("visual-grid").innerHTML = gridHTML;
     document.getElementById("result-panel").style.display = "block";
     document.getElementById("result-panel").scrollIntoView({ behavior: 'smooth' });
