@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes Exporter — archive any Substack profile's notes as CSV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ede2;
+    --paper-deep: #ebe1d0;
+    --ink: #1a1614;
+    --ink-soft: #4a423b;
+    --rule: #2a2420;
+    --accent: #c63d2f;
+    --accent-deep: #8a1a0f;
+    --highlight: #f5d547;
+    --shadow: 0 2px 0 var(--rule);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: "opsz" 24;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(198,61,47,0.06) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(138,26,15,0.05) 0%, transparent 50%),
+      repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 31px,
+        rgba(26,22,20,0.04) 31px,
+        rgba(26,22,20,0.04) 32px
+      );
+    padding: 4vh 4vw;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .masthead {
+    border-top: 4px double var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 0 12px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+  }
+
+  .masthead .vol { font-weight: 700; }
+  .masthead .date { font-style: normal; }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "wght" 900;
+    font-size: clamp(48px, 9vw, 96px);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+
+  h1 .amp {
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "wght" 400;
+    color: var(--accent);
+  }
+
+  .deck {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 36, "wght" 400;
+    font-size: 21px;
+    line-height: 1.35;
+    color: var(--ink-soft);
+    margin-bottom: 36px;
+    max-width: 560px;
+  }
+
+  .rule {
+    border: 0;
+    border-top: 1px solid var(--rule);
+    margin: 28px 0;
+  }
+
+  .lede {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    line-height: 1.55;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  .lede strong { font-variation-settings: "opsz" 24, "wght" 700; }
+
+  /* Form */
+  form {
+    background: var(--paper-deep);
+    border: 1.5px solid var(--rule);
+    padding: 28px;
+    margin: 32px 0;
+    box-shadow: 6px 6px 0 var(--rule);
+    position: relative;
+  }
+
+  form::before {
+    content: "§";
+    position: absolute;
+    top: -18px;
+    left: 24px;
+    background: var(--paper);
+    padding: 0 10px;
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    color: var(--accent);
+  }
+
+  label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .input-prefix {
+    padding: 14px 14px 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--ink-soft);
+    border-right: 1px dashed var(--ink-soft);
+    user-select: none;
+    background: var(--paper);
+  }
+
+  input[type="text"] {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    padding: 14px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--ink);
+    outline: none;
+    min-width: 0;
+  }
+
+  input[type="text"]::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.55;
+  }
+
+  .controls {
+    margin-top: 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 14px 22px;
+    border: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+    box-shadow: 4px 4px 0 var(--accent);
+  }
+
+  button:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--accent);
+  }
+
+  button:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--accent);
+  }
+
+  button:disabled {
+    background: var(--ink-soft);
+    border-color: var(--ink-soft);
+    cursor: not-allowed;
+    box-shadow: 4px 4px 0 var(--paper-deep);
+  }
+
+  .hint {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  /* Status panel */
+  .status {
+    margin-top: 24px;
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    background: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    min-height: 0;
+    display: none;
+  }
+  .status.active { display: block; }
+
+  .status .line {
+    color: var(--ink);
+  }
+  .status .line.dim { color: var(--ink-soft); }
+  .status .line.err { color: var(--accent-deep); font-weight: 700; }
+  .status .line.ok { color: #1e6d3f; font-weight: 700; }
+
+  .status .count {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .progress-bar {
+    margin-top: 10px;
+    height: 6px;
+    background: var(--paper-deep);
+    border: 1px solid var(--ink);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: repeating-linear-gradient(
+      45deg,
+      var(--accent) 0px,
+      var(--accent) 6px,
+      var(--accent-deep) 6px,
+      var(--accent-deep) 12px
+    );
+    transition: width 0.3s ease;
+  }
+  .progress-fill.indeterminate {
+    width: 100%;
+    background-size: 24px 24px;
+    animation: barber 0.8s linear infinite;
+  }
+  @keyframes barber {
+    from { background-position: 0 0; }
+    to { background-position: 24px 0; }
+  }
+
+  /* Footnotes / docs */
+  .colophon {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    columns: 2;
+    column-gap: 40px;
+  }
+  .colophon h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink);
+    margin-bottom: 8px;
+    margin-top: 0;
+  }
+  .colophon p { margin-bottom: 14px; break-inside: avoid; }
+  .colophon code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--paper-deep);
+    padding: 1px 5px;
+    border: 1px solid var(--ink-soft);
+  }
+
+  @media (max-width: 640px) {
+    .colophon { columns: 1; }
+    .input-row { flex-direction: column; }
+    .input-prefix { border-right: 0; border-bottom: 1px dashed var(--ink-soft); }
+  }
+
+  ::selection { background: var(--highlight); color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">
+    <span class="vol">Vol. I · No. 1</span>
+    <span class="title">The Notes Exporter</span>
+    <span class="date">Established MMXXVI</span>
+  </div>
+
+  <h1>Archive <span class="amp">&amp;</span><br>Export.</h1>
+  <p class="deck">A small tool for saving the public Notes of any Substack profile as a single CSV file. No account, no install, no fuss.</p>
+
+  <hr class="rule">
+
+  <p class="lede">Enter a Substack handle below. The exporter will walk the profile's entire public Notes feed, page by page, and hand you back a CSV with one row per note — text, date, likes, restacks, replies, and a direct link.</p>
+
+  <form id="export-form" autocomplete="off">
+    <label for="handle">Substack handle</label>
+    <div class="input-row">
+      <span class="input-prefix">substack.com/@</span>
+      <input type="text" id="handle" name="handle" placeholder="hamish" spellcheck="false" required>
+    </div>
+    <div class="controls">
+      <button type="submit" id="go">Export notes →</button>
+      <span class="hint">Try your own handle, or anyone whose notes are public.</span>
+    </div>
+  </form>
+
+  <div class="status" id="status">
+    <div id="status-lines"></div>
+    <div class="progress-bar" id="progress-wrap" style="display:none">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <h3>What you get</h3>
+    <p>A CSV with columns: <code>id</code>, <code>date</code>, <code>author_handle</code>, <code>author_name</code>, <code>text</code>, <code>likes</code>, <code>restacks</code>, <code>replies</code>, <code>url</code>.</p>
+
+    <h3>How it works</h3>
+    <p>The page calls Substack's public profile feed endpoint directly from your browser, paginating with a cursor until every note has been fetched. If your browser blocks the direct call, it transparently routes through a public CORS relay and retries.</p>
+
+    <h3>Limits</h3>
+    <p>Only <em>public</em> Notes are exportable — anything restricted to subscribers stays put. Very large profiles may take a minute or two; Substack rate-limits aggressive scraping, so the exporter paces itself.</p>
+
+    <h3>Trust</h3>
+    <p>Everything runs in your browser. No data is sent to any server I control. View source — it's one HTML file.</p>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const form = $('export-form');
+  const handleInput = $('handle');
+  const goBtn = $('go');
+  const status = $('status');
+  const statusLines = $('status-lines');
+  const progressWrap = $('progress-wrap');
+  const progress = $('progress');
+
+  // --- Status / log helpers ---
+  function clearStatus() {
+    statusLines.innerHTML = '';
+    status.classList.add('active');
+    progressWrap.style.display = 'none';
+    progress.classList.remove('indeterminate');
+    progress.style.width = '0%';
+  }
+  function log(msg, cls = '') {
+    const div = document.createElement('div');
+    div.className = 'line ' + cls;
+    div.innerHTML = msg;
+    statusLines.appendChild(div);
+    status.scrollTop = status.scrollHeight;
+  }
+  function showProgress(indeterminate = false) {
+    progressWrap.style.display = 'block';
+    if (indeterminate) progress.classList.add('indeterminate');
+    else progress.classList.remove('indeterminate');
+  }
+  function setProgress(pct) {
+    progress.classList.remove('indeterminate');
+    progress.style.width = Math.min(100, Math.max(0, pct)) + '%';
+  }
+
+  // --- Fetch with automatic CORS-proxy fallback ---
+  // Try direct first. If CORS blocks (TypeError in fetch), route through a public relay.
+  const PROXIES = [
+    (url) => 'https://corsproxy.io/?' + encodeURIComponent(url),
+    (url) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+  ];
+  let proxyMode = null; // null = direct; 0,1 = index into PROXIES
+
+  async function smartFetch(url) {
+    const attempts = proxyMode === null
+      ? [{ kind: 'direct', url }]
+              .concat(PROXIES.map((p, i) => ({ kind: 'proxy', i, url: p(url) })))
+      : [{ kind: 'proxy', i: proxyMode, url: PROXIES[proxyMode](url) }];
+
+    let lastErr;
+    for (const attempt of attempts) {
+      try {
+        const resp = await fetch(attempt.url, { headers: { 'Accept': 'application/json' } });
+        if (!resp.ok) {
+          // 4xx/5xx — propagate but don't try other proxies for the same logical error
+          if (attempt.kind === 'direct') {
+            // direct gave an HTTP error; proxies likely will too — but try one anyway
+            lastErr = new Error('HTTP ' + resp.status);
+            continue;
+          }
+          throw new Error('HTTP ' + resp.status + ' from ' + (attempt.kind === 'proxy' ? 'proxy' : 'substack'));
+        }
+        const data = await resp.json();
+        // Lock in working mode for subsequent calls
+        if (attempt.kind === 'direct') proxyMode = null;
+        else { proxyMode = attempt.i; if (attempt.i !== null) log('· routing via fallback relay', 'dim'); }
+        return data;
+      } catch (e) {
+        lastErr = e;
+        // Try next attempt
+      }
+    }
+    throw lastErr || new Error('All fetch attempts failed');
+  }
+
+  // --- Substack API helpers ---
+  async function resolveUserId(handle) {
+    // Public profile endpoint returns the numeric user id
+    const url = `https://substack.com/api/v1/user/${encodeURIComponent(handle)}/public_profile`;
+    const data = await smartFetch(url);
+    if (!data || !data.id) throw new Error('Profile not found or response shape unexpected');
+    return {
+      id: data.id,
+      name: data.name || handle,
+      handle: data.handle || handle,
+    };
+  }
+
+  async function fetchNotesPage(userId, cursor) {
+    // Reader feed for a profile — returns posts (notes are "comment"-typed items)
+    let url = `https://substack.com/api/v1/reader/feed/profile/${userId}`;
+    if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
+    return await smartFetch(url);
+  }
+
+  // Extract plain text from a Substack ProseMirror "bodyJson" tree.
+  function bodyJsonToText(node) {
+    if (!node) return '';
+    if (Array.isArray(node)) return node.map(bodyJsonToText).join('');
+    if (typeof node === 'string') return node;
+    if (node.type === 'text') return node.text || '';
+    if (node.type === 'hard_break' || node.type === 'hardBreak') return '\n';
+    let inner = '';
+    if (Array.isArray(node.content)) inner = node.content.map(bodyJsonToText).join('');
+    if (node.type === 'paragraph') return inner + '\n';
+    if (node.type === 'heading') return inner + '\n';
+    if (node.type === 'blockquote') return inner + '\n';
+    if (node.type === 'bullet_list' || node.type === 'ordered_list') return inner;
+    if (node.type === 'list_item') return '• ' + inner + '\n';
+    return inner;
+  }
+
+  // Pull a single Note out of a feed item.
+  // The reader feed wraps Notes in different shapes depending on item type; we try the common ones.
+  function extractNote(item, profile) {
+    // Most note items look like: { entity_key, type: 'comment', comment: {...} } or { context: {...}, comment: {...} }
+    const c = item.comment || (item.context && item.context.comment) || null;
+    if (!c) return null;
+    // Sometimes 'c' is just an id; require a body
+    if (!c.body && !c.body_json && !c.bodyJson) return null;
+
+    let text = c.body || '';
+    const bodyJson = c.body_json || c.bodyJson;
+    if (!text && bodyJson) text = bodyJsonToText(bodyJson).trim();
+
+    const id = c.id || item.entity_key || '';
+    const date = c.date || c.created_at || c.publication_date || '';
+    const likes = c.reaction_count ?? c.reactions ?? c.likes ?? 0;
+    const restacks = c.restacks ?? c.restack_count ?? 0;
+    const replies = c.children_count ?? c.reply_count ?? 0;
+
+    // Build a canonical URL. Notes live at substack.com/@handle/note/c-<id>
+    const url = id
+      ? `https://substack.com/@${profile.handle}/note/c-${id}`
+      : '';
+
+    return {
+      id: String(id),
+      date,
+      author_handle: profile.handle,
+      author_name: profile.name,
+      text: text.trim(),
+      likes: Number(likes) || 0,
+      restacks: Number(restacks) || 0,
+      replies: Number(replies) || 0,
+      url,
+    };
+  }
+
+  // --- CSV building ---
+  function csvEscape(v) {
+    if (v == null) return '';
+    const s = String(v);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+  function buildCSV(rows) {
+    const cols = ['id','date','author_handle','author_name','text','likes','restacks','replies','url'];
+    const head = cols.join(',');
+    const body = rows.map(r => cols.map(c => csvEscape(r[c])).join(',')).join('\r\n');
+    return head + '\r\n' + body + '\r\n';
+  }
+
+  function downloadCSV(filename, csv) {
+    // Prepend BOM so Excel reads UTF-8 correctly
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 1000);
+  }
+
+  // --- Main orchestration ---
+  async function runExport(handle) {
+    clearStatus();
+    log(`Looking up <strong>@${handle}</strong>…`);
+    showProgress(true);
+
+    let profile;
+    try {
+      profile = await resolveUserId(handle);
+    } catch (e) {
+      log('Could not find that profile. Check the handle and try again.', 'err');
+      log(`<span class="dim">(${e.message})</span>`, 'dim');
+      return;
+    }
+
+    log(`Found <strong>${escapeHTML(profile.name)}</strong> (user id ${profile.id})`, 'ok');
+    log('Walking notes feed…');
+
+    const notes = [];
+    const seen = new Set();
+    let cursor = null;
+    let page = 0;
+    const MAX_PAGES = 500; // hard ceiling — sanity stop
+
+    while (page < MAX_PAGES) {
+      page++;
+      let data;
+      try {
+        data = await fetchNotesPage(profile.id, cursor);
+      } catch (e) {
+        log(`Page ${page} failed: ${e.message}`, 'err');
+        if (notes.length > 0) {
+          log('Continuing with what we have…', 'dim');
+          break;
+        }
+        return;
+      }
+
+      const items = data.items || data.posts || data.feed || [];
+      let added = 0;
+      for (const item of items) {
+        const note = extractNote(item, profile);
+        if (note && note.id && !seen.has(note.id)) {
+          seen.add(note.id);
+          notes.push(note);
+          added++;
+        }
+      }
+
+      log(`Page ${page}: <span class="count">${added}</span> new notes <span class="dim">(total: ${notes.length})</span>`);
+
+      // Cursor lives in different places depending on response shape
+      const nextCursor = data.nextCursor || data.next_cursor || data.cursor || null;
+      if (!nextCursor || nextCursor === cursor) break;
+      cursor = nextCursor;
+
+      // Polite pacing — Substack rate-limits aggressive crawlers
+      await sleep(350);
+    }
+
+    if (page >= MAX_PAGES) log(`Hit the safety stop at ${MAX_PAGES} pages.`, 'dim');
+
+    if (notes.length === 0) {
+      log('No notes found on this profile.', 'err');
+      return;
+    }
+
+    // Sort newest first
+    notes.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    const csv = buildCSV(notes);
+    const filename = `substack-notes_${profile.handle}_${new Date().toISOString().slice(0,10)}.csv`;
+    downloadCSV(filename, csv);
+
+    setProgress(100);
+    log(`Done. Exported <span class="count">${notes.length}</span> notes → <strong>${filename}</strong>`, 'ok');
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  // --- Form wiring ---
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let handle = handleInput.value.trim();
+    // Tolerate paste of "@handle", "substack.com/@handle", full URLs
+    handle = handle.replace(/^https?:\/\/(www\.)?substack\.com\//i, '');
+    handle = handle.replace(/^@/, '');
+    handle = handle.split(/[\/?#]/)[0];
+    if (!handle) { handleInput.focus(); return; }
+
+    goBtn.disabled = true;
+    goBtn.textContent = 'Working…';
+    try {
+      await runExport(handle);
+    } catch (e) {
+      log('Unexpected error: ' + e.message, 'err');
+    } finally {
+      goBtn.disabled = false;
+      goBtn.textContent = 'Export notes →';
+    }
+  });
+
+  // Auto-focus on load
+  handleInput.focus();
+})();
+</script>
+</body>
+</html>
