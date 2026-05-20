@@ -421,20 +421,45 @@
   ];
   let lockedProxy = null; // once one works for this run, stick with it
 
-  async function smartFetch(url) {
-    // Build the ordered attempt list
+  // Track which proxies have been rate-limited so we don't keep hammering them.
+  // Maps proxy index → epoch ms when we should try it again.
+  const proxyCooldown = new Map();
+  const COOLDOWN_MS = 60_000; // 1 minute after a 429
+
+  function proxyAvailable(i) {
+    const until = proxyCooldown.get(i);
+    return !until || Date.now() >= until;
+  }
+
+  async function smartFetch(url, { isRetry = false } = {}) {
+    // Build the ordered attempt list.
+    // If we have a locked proxy that's still available, prefer it.
+    // Otherwise (cold start, or locked proxy on cooldown), try direct + every non-cooled proxy.
     const attempts = [];
-    if (lockedProxy === null) {
-      attempts.push({ kind: 'direct', name: 'direct', url });
-      for (let i = 0; i < PROXIES.length; i++) {
-        attempts.push({ kind: 'proxy', i, name: PROXIES[i].name, url: PROXIES[i].build(url) });
-      }
-    } else {
+    if (lockedProxy !== null && proxyAvailable(lockedProxy)) {
       const p = PROXIES[lockedProxy];
       attempts.push({ kind: 'proxy', i: lockedProxy, name: p.name, url: p.build(url) });
+      // Also queue the others as fallback in case the locked one fails this call
+      for (let i = 0; i < PROXIES.length; i++) {
+        if (i !== lockedProxy && proxyAvailable(i)) {
+          attempts.push({ kind: 'proxy', i, name: PROXIES[i].name, url: PROXIES[i].build(url) });
+        }
+      }
+    } else {
+      // No lock, or locked proxy is cooling down — try direct then all available proxies
+      attempts.push({ kind: 'direct', name: 'direct', url });
+      for (let i = 0; i < PROXIES.length; i++) {
+        if (proxyAvailable(i)) {
+          attempts.push({ kind: 'proxy', i, name: PROXIES[i].name, url: PROXIES[i].build(url) });
+        }
+      }
+      // If the locked proxy was cooling down, unlock so the next successful one re-locks
+      if (lockedProxy !== null && !proxyAvailable(lockedProxy)) lockedProxy = null;
     }
 
     const errs = [];
+    let all429 = attempts.length > 0;
+
     for (const attempt of attempts) {
       try {
         const resp = await fetch(attempt.url, {
@@ -442,29 +467,52 @@
           mode: 'cors',
           credentials: 'omit',
         });
-        if (!resp.ok) {
-          errs.push(`${attempt.name}: HTTP ${resp.status}`);
+        if (resp.status === 429) {
+          errs.push(`${attempt.name}: HTTP 429 (rate limited)`);
+          if (attempt.kind === 'proxy') {
+            proxyCooldown.set(attempt.i, Date.now() + COOLDOWN_MS);
+            // If this was our locked proxy, drop the lock so other proxies get a turn
+            if (lockedProxy === attempt.i) lockedProxy = null;
+          }
           continue;
         }
-        // Read as text first so we can detect HTML error pages from proxies
+        if (!resp.ok) {
+          errs.push(`${attempt.name}: HTTP ${resp.status}`);
+          all429 = false;
+          continue;
+        }
         const text = await resp.text();
         let data;
         try {
           data = JSON.parse(text);
         } catch {
           errs.push(`${attempt.name}: non-JSON response (${text.slice(0, 60)}…)`);
+          all429 = false;
           continue;
         }
-        if (lockedProxy === null && attempt.kind === 'proxy') {
+        if (attempt.kind === 'proxy' && lockedProxy !== attempt.i) {
+          const previouslyLocked = lockedProxy;
           lockedProxy = attempt.i;
-          log(`· routing via ${attempt.name}`, 'dim');
+          if (previouslyLocked === null) log(`· routing via ${attempt.name}`, 'dim');
+          else log(`· switched to ${attempt.name}`, 'dim');
         }
         return data;
       } catch (e) {
-        // TypeError "Failed to fetch" / "Load failed" = CORS or network
         errs.push(`${attempt.name}: ${e.message || e.name}`);
+        all429 = false;
       }
     }
+
+    // If every attempt was a 429, back off and try once more (caller can decide to retry further).
+    if (all429 && !isRetry) {
+      const waitMs = 15_000;
+      log(`All proxies rate-limited — backing off ${waitMs/1000}s and retrying…`, 'dim');
+      await sleep(waitMs);
+      // Clear cooldowns so the retry actually attempts them
+      proxyCooldown.clear();
+      return await smartFetch(url, { isRetry: true });
+    }
+
     throw new Error('All fetch attempts failed → ' + errs.join(' | '));
   }
 
@@ -626,8 +674,8 @@
       if (!nextCursor || nextCursor === cursor) break;
       cursor = nextCursor;
 
-      // Polite pacing — Substack rate-limits aggressive crawlers
-      await sleep(350);
+      // Polite pacing — Substack and proxies both rate-limit aggressive crawlers
+      await sleep(600);
     }
 
     if (page >= MAX_PAGES) log(`Hit the safety stop at ${MAX_PAGES} pages.`, 'dim');
