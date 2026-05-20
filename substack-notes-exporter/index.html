@@ -412,42 +412,60 @@
 
   // --- Fetch with automatic CORS-proxy fallback ---
   // Try direct first. If CORS blocks (TypeError in fetch), route through a public relay.
+  // Proxy builders. corsproxy.io wants the raw URL appended (no encoding).
+  // allorigins /raw wants encoded. We try direct first, then each proxy.
   const PROXIES = [
-    (url) => 'https://corsproxy.io/?' + encodeURIComponent(url),
-    (url) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    { name: 'corsproxy.io', build: (url) => 'https://corsproxy.io/?' + url },
+    { name: 'allorigins',   build: (url) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) },
+    { name: 'codetabs',     build: (url) => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(url) },
   ];
-  let proxyMode = null; // null = direct; 0,1 = index into PROXIES
+  let lockedProxy = null; // once one works for this run, stick with it
 
   async function smartFetch(url) {
-    const attempts = proxyMode === null
-      ? [{ kind: 'direct', url }]
-              .concat(PROXIES.map((p, i) => ({ kind: 'proxy', i, url: p(url) })))
-      : [{ kind: 'proxy', i: proxyMode, url: PROXIES[proxyMode](url) }];
+    // Build the ordered attempt list
+    const attempts = [];
+    if (lockedProxy === null) {
+      attempts.push({ kind: 'direct', name: 'direct', url });
+      for (let i = 0; i < PROXIES.length; i++) {
+        attempts.push({ kind: 'proxy', i, name: PROXIES[i].name, url: PROXIES[i].build(url) });
+      }
+    } else {
+      const p = PROXIES[lockedProxy];
+      attempts.push({ kind: 'proxy', i: lockedProxy, name: p.name, url: p.build(url) });
+    }
 
-    let lastErr;
+    const errs = [];
     for (const attempt of attempts) {
       try {
-        const resp = await fetch(attempt.url, { headers: { 'Accept': 'application/json' } });
+        const resp = await fetch(attempt.url, {
+          headers: { 'Accept': 'application/json' },
+          mode: 'cors',
+          credentials: 'omit',
+        });
         if (!resp.ok) {
-          // 4xx/5xx — propagate but don't try other proxies for the same logical error
-          if (attempt.kind === 'direct') {
-            // direct gave an HTTP error; proxies likely will too — but try one anyway
-            lastErr = new Error('HTTP ' + resp.status);
-            continue;
-          }
-          throw new Error('HTTP ' + resp.status + ' from ' + (attempt.kind === 'proxy' ? 'proxy' : 'substack'));
+          errs.push(`${attempt.name}: HTTP ${resp.status}`);
+          continue;
         }
-        const data = await resp.json();
-        // Lock in working mode for subsequent calls
-        if (attempt.kind === 'direct') proxyMode = null;
-        else { proxyMode = attempt.i; if (attempt.i !== null) log('· routing via fallback relay', 'dim'); }
+        // Read as text first so we can detect HTML error pages from proxies
+        const text = await resp.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          errs.push(`${attempt.name}: non-JSON response (${text.slice(0, 60)}…)`);
+          continue;
+        }
+        if (lockedProxy === null && attempt.kind === 'proxy') {
+          lockedProxy = attempt.i;
+          log(`· routing via ${attempt.name}`, 'dim');
+        }
         return data;
       } catch (e) {
-        lastErr = e;
-        // Try next attempt
+        // TypeError "Failed to fetch" / "Load failed" = CORS or network
+        errs.push(`${attempt.name}: ${e.message || e.name}`);
       }
     }
-    throw lastErr || new Error('All fetch attempts failed');
+    throw new Error('All fetch attempts failed → ' + errs.join(' | '));
   }
 
   // --- Substack API helpers ---
