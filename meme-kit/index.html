@@ -125,7 +125,6 @@
     pointer-events: auto;
     cursor: grab;
     padding: 6px 8px;
-    font-family: Impact, "Arial Black", sans-serif;
     color: #fff;
     text-align: center;
     white-space: pre;
@@ -293,6 +292,80 @@
     .toolbar { padding: 8px; gap: 6px; }
     button, .input { padding: 8px 10px; font-size: 13px; }
   }
+
+  /* Crop modal */
+  .crop-modal {
+    position: fixed;
+    inset: 0;
+    background: #0f0f10;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .crop-modal.visible { display: flex; }
+  .crop-header {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 14px;
+    color: #9b9ba5;
+    border-bottom: 1px solid #1f1f23;
+  }
+  .crop-stage {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: hidden;
+    position: relative;
+    background: #18181c;
+  }
+  .crop-image-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .crop-image-wrap img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    -webkit-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+  }
+  .crop-box {
+    position: absolute;
+    border: 2px solid #ffde59;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+    cursor: move;
+    touch-action: none;
+  }
+  .crop-handle {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: #ffde59;
+    border: 2px solid #0f0f10;
+    border-radius: 50%;
+    touch-action: none;
+  }
+  .crop-handle.tl { top: -12px; left: -12px; cursor: nwse-resize; }
+  .crop-handle.tr { top: -12px; right: -12px; cursor: nesw-resize; }
+  .crop-handle.bl { bottom: -12px; left: -12px; cursor: nesw-resize; }
+  .crop-handle.br { bottom: -12px; right: -12px; cursor: nwse-resize; }
+  .crop-actions {
+    flex-shrink: 0;
+    padding: 12px;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid #1f1f23;
+  }
+  .crop-actions button { flex: 1; padding: 14px; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -322,8 +395,9 @@
 
   <div class="toolbar">
     <div class="size-controls" id="sizeControls">
-      <span id="selectedLabel">text selected</span>
+      <button onclick="cycleFont()" id="fontBtn">Impact</button>
       <button onclick="toggleItemCaps()" id="itemCapsBtn">Aa</button>
+      <button onclick="cycleBg()" id="bgBtn">▢</button>
       <button onclick="resizeText(-4)">A-</button>
       <button onclick="resizeText(4)">A+</button>
       <button onclick="deleteText()" title="delete this text">🗑</button>
@@ -344,6 +418,25 @@
 <input type="file" id="fileInput" accept="image/*">
 <input type="file" id="overlayInput" accept="image/*">
 
+<div class="crop-modal" id="cropModal">
+  <div class="crop-header">drag corners to crop</div>
+  <div class="crop-stage" id="cropStage">
+    <div class="crop-image-wrap" id="cropImageWrap">
+      <img id="cropImage" alt="">
+      <div class="crop-box" id="cropBox">
+        <div class="crop-handle tl"></div>
+        <div class="crop-handle tr"></div>
+        <div class="crop-handle bl"></div>
+        <div class="crop-handle br"></div>
+      </div>
+    </div>
+  </div>
+  <div class="crop-actions">
+    <button onclick="cancelCrop()">cancel</button>
+    <button class="primary" onclick="applyCrop()">use crop</button>
+  </div>
+</div>
+
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -358,10 +451,27 @@ const fileInput = document.getElementById('fileInput');
 const overlayInput = document.getElementById('overlayInput');
 
 let img = null;
-let texts = []; // { kind:'text', id, text, x, y, size, caps, el }
+let texts = []; // { kind:'text', id, text, x, y, size, caps, fontIdx, bgIdx, el }
 let images = []; // { kind:'image', id, img, x, y, size, aspect, el }
 let selectedId = null;
 let nextId = 1;
+
+// Background styles: cycle through these. Each defines text bg + text color + stroke
+const BG_STYLES = [
+  { name: '▢',  bg: null,      color: '#fff', stroke: '#000', strokeOn: true  }, // default: white text, black outline
+  { name: '⬜', bg: '#fff',    color: '#000', stroke: null,   strokeOn: false }, // white box, black text
+  { name: '⬛', bg: '#000',    color: '#fff', stroke: null,   strokeOn: false }, // black box, white text
+  { name: '🟨', bg: '#ffde59', color: '#000', stroke: null,   strokeOn: false }, // yellow box, black text
+];
+
+// Fonts available — name shown on button, fontFamily used for both CSS and canvas
+const FONTS = [
+  { name: 'Impact',  family: 'Impact, "Arial Black", sans-serif',         weight: 'bold',   stroke: 0.12 },
+  { name: 'Serif',   family: 'Georgia, "Times New Roman", serif',          weight: 'bold',   stroke: 0.08 },
+  { name: 'Sans',    family: '-apple-system, "Helvetica Neue", Arial, sans-serif', weight: '400', stroke: 0.06 },
+  { name: 'Mono',    family: 'Menlo, Monaco, "Courier New", monospace',    weight: 'bold',   stroke: 0.08 },
+  { name: 'Script',  family: '"Snell Roundhand", "Brush Script MT", cursive', weight: '400', stroke: 0.07 },
+];
 
 function getItem(id) {
   return texts.find(t => t.id === id) || images.find(i => i.id === id);
@@ -390,20 +500,211 @@ fileInput.addEventListener('change', (e) => {
   fileInput.value = '';
 });
 
-// Overlay image upload
+// Overlay image upload → open crop modal
 overlayInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   if (!img) { flashEmpty(); return; }
   const reader = new FileReader();
   reader.onload = (ev) => {
-    const newImg = new Image();
-    newImg.onload = () => addImage(newImg);
-    newImg.src = ev.target.result;
+    openCropModal(ev.target.result);
   };
   reader.readAsDataURL(file);
   overlayInput.value = '';
 });
+
+// ---------- CROP MODAL ----------
+let cropState = null; // { img, naturalW, naturalH, box: {x,y,w,h in displayed px} }
+
+function openCropModal(dataUrl) {
+  const cropImage = document.getElementById('cropImage');
+  cropImage.onload = () => {
+    // Initialize crop box to ~80% centered
+    const wrap = document.getElementById('cropImageWrap');
+    // Force layout: image is now visible, get its rendered size
+    requestAnimationFrame(() => {
+      const rect = cropImage.getBoundingClientRect();
+      wrap.style.width = rect.width + 'px';
+      wrap.style.height = rect.height + 'px';
+      const inset = 0.1;
+      cropState = {
+        img: cropImage,
+        naturalW: cropImage.naturalWidth,
+        naturalH: cropImage.naturalHeight,
+        displayW: rect.width,
+        displayH: rect.height,
+        box: {
+          x: rect.width * inset,
+          y: rect.height * inset,
+          w: rect.width * (1 - inset * 2),
+          h: rect.height * (1 - inset * 2),
+        },
+      };
+      renderCropBox();
+    });
+  };
+  cropImage.src = dataUrl;
+  document.getElementById('cropModal').classList.add('visible');
+}
+
+function renderCropBox() {
+  if (!cropState) return;
+  const box = document.getElementById('cropBox');
+  box.style.left = cropState.box.x + 'px';
+  box.style.top = cropState.box.y + 'px';
+  box.style.width = cropState.box.w + 'px';
+  box.style.height = cropState.box.h + 'px';
+}
+
+function cancelCrop() {
+  document.getElementById('cropModal').classList.remove('visible');
+  cropState = null;
+}
+
+function applyCrop() {
+  if (!cropState) return;
+  // Scale displayed-pixel crop to natural-image pixels
+  const sx = cropState.naturalW / cropState.displayW;
+  const sy = cropState.naturalH / cropState.displayH;
+  const cx = Math.round(cropState.box.x * sx);
+  const cy = Math.round(cropState.box.y * sy);
+  const cw = Math.round(cropState.box.w * sx);
+  const ch = Math.round(cropState.box.h * sy);
+
+  // Render cropped region to an offscreen canvas, then back to an Image
+  const off = document.createElement('canvas');
+  off.width = cw;
+  off.height = ch;
+  const octx = off.getContext('2d');
+  octx.drawImage(cropState.img, cx, cy, cw, ch, 0, 0, cw, ch);
+
+  const newImg = new Image();
+  newImg.onload = () => {
+    addImage(newImg);
+    document.getElementById('cropModal').classList.remove('visible');
+    cropState = null;
+  };
+  newImg.src = off.toDataURL('image/png');
+}
+
+// Drag crop box body to move
+(function attachCropBoxDrag() {
+  const box = document.getElementById('cropBox');
+  let startX, startY, startBoxX, startBoxY;
+  const onMove = (e) => {
+    if (!cropState) return;
+    e.preventDefault();
+    const point = e.touches ? e.touches[0] : e;
+    const dx = point.clientX - startX;
+    const dy = point.clientY - startY;
+    let nx = startBoxX + dx;
+    let ny = startBoxY + dy;
+    nx = Math.max(0, Math.min(cropState.displayW - cropState.box.w, nx));
+    ny = Math.max(0, Math.min(cropState.displayH - cropState.box.h, ny));
+    cropState.box.x = nx;
+    cropState.box.y = ny;
+    renderCropBox();
+  };
+  const onEnd = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+  };
+  const onStart = (e) => {
+    // Ignore drags that start on a corner handle
+    if (e.target.classList.contains('crop-handle')) return;
+    e.preventDefault();
+    const point = e.touches ? e.touches[0] : e;
+    startX = point.clientX;
+    startY = point.clientY;
+    startBoxX = cropState.box.x;
+    startBoxY = cropState.box.y;
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+  };
+  box.addEventListener('mousedown', onStart);
+  box.addEventListener('touchstart', onStart, { passive: false });
+})();
+
+// Attach drag to each corner handle for resize
+(function attachCropHandles() {
+  const handles = document.querySelectorAll('.crop-handle');
+  handles.forEach(handle => {
+    let startX, startY, startBox;
+    const corner =
+      handle.classList.contains('tl') ? 'tl' :
+      handle.classList.contains('tr') ? 'tr' :
+      handle.classList.contains('bl') ? 'bl' : 'br';
+
+    const onMove = (e) => {
+      if (!cropState) return;
+      e.preventDefault();
+      const point = e.touches ? e.touches[0] : e;
+      const dx = point.clientX - startX;
+      const dy = point.clientY - startY;
+      let { x, y, w, h } = startBox;
+      const minSize = 30;
+
+      if (corner === 'tl') {
+        x = startBox.x + dx;
+        y = startBox.y + dy;
+        w = startBox.w - dx;
+        h = startBox.h - dy;
+      } else if (corner === 'tr') {
+        y = startBox.y + dy;
+        w = startBox.w + dx;
+        h = startBox.h - dy;
+      } else if (corner === 'bl') {
+        x = startBox.x + dx;
+        w = startBox.w - dx;
+        h = startBox.h + dy;
+      } else {
+        w = startBox.w + dx;
+        h = startBox.h + dy;
+      }
+
+      // Clamp to image bounds and min size
+      if (w < minSize) {
+        if (corner === 'tl' || corner === 'bl') x = startBox.x + startBox.w - minSize;
+        w = minSize;
+      }
+      if (h < minSize) {
+        if (corner === 'tl' || corner === 'tr') y = startBox.y + startBox.h - minSize;
+        h = minSize;
+      }
+      if (x < 0) { w += x; x = 0; }
+      if (y < 0) { h += y; y = 0; }
+      if (x + w > cropState.displayW) w = cropState.displayW - x;
+      if (y + h > cropState.displayH) h = cropState.displayH - y;
+
+      cropState.box = { x, y, w, h };
+      renderCropBox();
+    };
+    const onEnd = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+    };
+    const onStart = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const point = e.touches ? e.touches[0] : e;
+      startX = point.clientX;
+      startY = point.clientY;
+      startBox = { ...cropState.box };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    };
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, { passive: false });
+  });
+})();
 
 function drawImage() {
   if (!img) return;
@@ -462,6 +763,8 @@ function addText() {
     y: texts.length === 0 ? 12 : (texts.length === 1 ? 88 : 50),
     size: 8,
     caps: true,
+    fontIdx: 0,
+    bgIdx: 0,
   };
   texts.push(item);
   renderText(item);
@@ -506,8 +809,33 @@ function renderText(item) {
   });
   el.insertBefore(document.createTextNode(item.text), del);
   el.classList.toggle('caps', item.caps);
+  const font = FONTS[item.fontIdx || 0];
+  el.style.fontFamily = font.family;
+  el.style.fontWeight = font.weight;
+  applyBgStyle(el, item);
   positionText(el, item);
   item.el = el;
+}
+
+function applyBgStyle(el, item) {
+  const style = BG_STYLES[item.bgIdx || 0];
+  if (style.bg) {
+    el.style.background = style.bg;
+    el.style.padding = '0.15em 0.4em';
+    el.style.borderRadius = '0.08em';
+  } else {
+    el.style.background = '';
+    el.style.padding = '6px 8px';
+    el.style.borderRadius = '';
+  }
+  el.style.color = style.color;
+  if (style.strokeOn) {
+    el.style.webkitTextStroke = '2px #000';
+    el.style.textShadow = '2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000';
+  } else {
+    el.style.webkitTextStroke = '0';
+    el.style.textShadow = 'none';
+  }
 }
 
 function toggleItemCaps() {
@@ -522,6 +850,36 @@ function updateItemCapsBtn(item) {
   const btn = document.getElementById('itemCapsBtn');
   if (!btn) return;
   btn.textContent = item.caps ? 'AA' : 'aa';
+}
+
+function cycleFont() {
+  const item = getItem(selectedId);
+  if (!item || item.kind !== 'text') return;
+  item.fontIdx = ((item.fontIdx || 0) + 1) % FONTS.length;
+  const font = FONTS[item.fontIdx];
+  item.el.style.fontFamily = font.family;
+  item.el.style.fontWeight = font.weight;
+  updateFontBtn(item);
+}
+
+function updateFontBtn(item) {
+  const btn = document.getElementById('fontBtn');
+  if (!btn) return;
+  btn.textContent = FONTS[item.fontIdx || 0].name;
+}
+
+function cycleBg() {
+  const item = getItem(selectedId);
+  if (!item || item.kind !== 'text') return;
+  item.bgIdx = ((item.bgIdx || 0) + 1) % BG_STYLES.length;
+  applyBgStyle(item.el, item);
+  updateBgBtn(item);
+}
+
+function updateBgBtn(item) {
+  const btn = document.getElementById('bgBtn');
+  if (!btn) return;
+  btn.textContent = BG_STYLES[item.bgIdx || 0].name;
 }
 
 function positionText(el, item) {
@@ -679,10 +1037,12 @@ function selectItem(id) {
     el.classList.toggle('selected', el.dataset.id == id);
   });
   const item = getItem(id);
-  // Only show toolbar with caps/size buttons for text
+  // Only show toolbar with caps/size/font buttons for text
   if (item && item.kind === 'text') {
     sizeControls.classList.add('visible');
     updateItemCapsBtn(item);
+    updateFontBtn(item);
+    updateBgBtn(item);
   } else {
     sizeControls.classList.remove('visible');
   }
@@ -807,19 +1167,50 @@ downloadBtn.addEventListener('click', () => {
   // Then text on top
   texts.forEach(item => {
     const fontPx = Math.max(12, canvasRect.height * (item.size / 100)) * scale;
-    ctx.font = `bold ${fontPx}px Impact, "Arial Black", sans-serif`;
+    const font = FONTS[item.fontIdx || 0];
+    const bgStyle = BG_STYLES[item.bgIdx || 0];
+    ctx.font = `${font.weight} ${fontPx}px ${font.family}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = fontPx * 0.12;
-    ctx.strokeStyle = '#000';
-    ctx.fillStyle = '#fff';
     const x = (item.x / 100) * canvas.width;
     const y = (item.y / 100) * canvas.height;
     const renderedText = item.caps ? item.text.toUpperCase() : item.text;
-    ctx.strokeText(renderedText, x, y);
+
+    // Draw background box if BG style has one
+    if (bgStyle.bg) {
+      const metrics = ctx.measureText(renderedText);
+      const textW = metrics.width;
+      const textH = fontPx * 1.05; // matches CSS line-height
+      const padX = fontPx * 0.4;
+      const padY = fontPx * 0.15;
+      const boxW = textW + padX * 2;
+      const boxH = textH + padY * 2;
+      ctx.fillStyle = bgStyle.bg;
+      const radius = fontPx * 0.08;
+      roundRect(ctx, x - boxW / 2, y - boxH / 2, boxW, boxH, radius);
+      ctx.fill();
+    }
+
+    // Draw stroke + fill text
+    if (bgStyle.strokeOn) {
+      ctx.lineWidth = fontPx * font.stroke;
+      ctx.strokeStyle = bgStyle.stroke || '#000';
+      ctx.strokeText(renderedText, x, y);
+    }
+    ctx.fillStyle = bgStyle.color;
     ctx.fillText(renderedText, x, y);
   });
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y,     x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x,     y + h, r);
+    ctx.arcTo(x,     y + h, x,     y,     r);
+    ctx.arcTo(x,     y,     x + w, y,     r);
+    ctx.closePath();
+  }
 
   canvas.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
