@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Trainer: Learn Story Structure</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-alt: #F5F4F0;
+  --border: #E8E6E1;
+  --border-focus: #B8B5AD;
+  --text: #1A1A18;
+  --text-secondary: #6B6860;
+  --text-tertiary: #9B978E;
+  --accent: #2D2D2A;
+  --highlight: #D4A853;
+  --highlight-soft: #FBF5E8;
+  --success: #4A7C59;
+  --step-inactive: #D4D2CC;
+  --step-complete: #4A7C59;
+  --step-active: #D4A853;
+}
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.site-header {
+  padding: 2rem 2rem 0;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.site-header h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.8rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.site-header .subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-weight: 300;
+}
+
+.progress-container {
+  max-width: 780px;
+  margin: 2rem auto 0;
+  padding: 0 2rem;
+}
+
+.progress-steps {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.progress-step.locked { cursor: default; opacity: 0.5; }
+.progress-step:not(.locked):hover .step-dot { transform: scale(1.2); }
+
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--step-inactive);
+  border: 2px solid var(--step-inactive);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.progress-step.active .step-dot {
+  background: var(--step-active);
+  border-color: var(--step-active);
+  box-shadow: 0 0 0 4px var(--highlight-soft);
+}
+
+.progress-step.complete .step-dot {
+  background: var(--step-complete);
+  border-color: var(--step-complete);
+}
+
+.step-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-top: 0.5rem;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+
+.progress-step.active .step-label { color: var(--text); }
+.progress-step.complete .step-label { color: var(--step-complete); }
+
+.progress-line {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--step-inactive);
+  z-index: 1;
+}
+
+.progress-line-fill {
+  height: 100%;
+  background: var(--step-complete);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+}
+
+.step {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.step.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-number {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: var(--text-tertiary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.step h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.step-intro {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  font-weight: 300;
+}
+
+.step-intro strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.teaching-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.teaching-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--highlight);
+  border-radius: 8px 8px 0 0;
+}
+
+.teaching-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--highlight);
+  margin-bottom: 0.75rem;
+}
+
+.teaching-box p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.teaching-box p + p { margin-top: 0.75rem; }
+
+.teaching-example {
+  background: var(--surface-alt);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text);
+  border-left: 3px solid var(--highlight);
+}
+
+.teaching-example .ex-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 0.35rem;
+}
+
+.field-group { margin-bottom: 1.75rem; }
+
+.field-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.field-group label .hint {
+  font-weight: 300;
+  color: var(--text-tertiary);
+  font-size: 0.78rem;
+}
+
+textarea, input[type="text"] {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: vertical;
+}
+
+textarea:focus, input[type="text"]:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.1);
+}
+
+textarea::placeholder, input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 300;
+}
+
+textarea { min-height: 100px; }
+textarea.short { min-height: 70px; }
+
+.btn-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.6rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover { background: #3D3D3A; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover { border-color: var(--border-focus); color: var(--text); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-tertiary);
+  padding: 0.7rem 1rem;
+}
+
+.btn-ghost:hover { color: var(--text); }
+
+/* Beat Sheet */
+.beat-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.75rem;
+}
+
+.beat-card {
+  background: var(--surface);
+  padding: 1.25rem 1.5rem;
+}
+
+.beat-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.beat-number {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+}
+
+.beat-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.beat-desc {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.beat-card textarea {
+  font-size: 0.88rem;
+  min-height: 60px;
+  border-color: var(--surface-alt);
+}
+
+.beat-card textarea:focus { border-color: var(--border-focus); }
+
+.act-divider {
+  background: var(--surface-alt);
+  padding: 0.6rem 1.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* Summary */
+.summary-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.summary-header {
+  padding: 1rem 1.5rem;
+  background: var(--surface-alt);
+  font-size: 0.75rem;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.summary-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.summary-body p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.summary-body .empty {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.summary-body .label-sm {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.summary-body .label-sm:first-child { margin-top: 0; }
+
+/* Landing */
+.landing-hero {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 3rem 0 2rem;
+}
+
+.landing-hero h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.landing-hero p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+}
+
+.start-btn {
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  padding: 0.85rem 2.5rem;
+}
+
+/* Roadmap Cards */
+.roadmap-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 0 2rem;
+}
+
+.roadmap-card {
+  background: var(--surface);
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 1rem;
+  row-gap: 0.15rem;
+}
+
+.roadmap-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--highlight);
+  grid-row: 1 / 3;
+  align-self: start;
+  padding-top: 0.1rem;
+}
+
+.roadmap-card h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.roadmap-card p {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  line-height: 1.55;
+}
+
+.export-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .site-header { padding: 1.5rem 1.25rem 0; }
+  .site-header h1 { font-size: 2.1rem; }
+  .progress-container { padding: 0 1.25rem; }
+  .main-content { padding: 2rem 1.25rem 3rem; }
+  .step-label { font-size: 0.55rem; }
+  .step h2 { font-size: 1.6rem; }
+  .btn-row { flex-wrap: wrap; gap: 0.75rem; }
+  .roadmap-card { column-gap: 0.75rem; }
+}
+
+@media print {
+  .site-header, .progress-container, .btn-row, .export-actions { display: none; }
+  .step { display: block !important; }
+  .main-content { padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Story Trainer</h1>
+  <p class="subtitle">A guided tool for building stories that work.</p>
+</header>
+
+<nav class="progress-container" id="progressContainer" style="display:none;">
+  <div class="progress-steps">
+    <div class="progress-line"><div class="progress-line-fill" id="progressFill"></div></div>
+    <div class="progress-step active" data-step="1" onclick="goToStep(1)">
+      <div class="step-dot"></div><span class="step-label">Logline</span>
+    </div>
+    <div class="progress-step locked" data-step="2" onclick="goToStep(2)">
+      <div class="step-dot"></div><span class="step-label">Emotional Core</span>
+    </div>
+    <div class="progress-step locked" data-step="3" onclick="goToStep(3)">
+      <div class="step-dot"></div><span class="step-label">Beat Sheet</span>
+    </div>
+    <div class="progress-step locked" data-step="4" onclick="goToStep(4)">
+      <div class="step-dot"></div><span class="step-label">The Fracture</span>
+    </div>
+    <div class="progress-step locked" data-step="5" onclick="goToStep(5)">
+      <div class="step-dot"></div><span class="step-label">New Soul</span>
+    </div>
+    <div class="progress-step locked" data-step="6" onclick="goToStep(6)">
+      <div class="step-dot"></div><span class="step-label">Blueprint</span>
+    </div>
+  </div>
+</nav>
+
+<main class="main-content">
+
+  <!-- LANDING -->
+  <div class="step active" id="step-0">
+    <div class="landing-hero">
+      <h2>Plot gets your story moving.<br>Structure makes it land.</h2>
+      <p>Every great story has the same bones: a hero, an obstacle, a goal, and underneath all of it, an emotional core that makes people care. This tool helps you find all of that in your own idea.</p>
+      <p>Five steps. Each one builds on the last. By the end you'll have a complete story blueprint you can actually write from.</p>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn btn-primary start-btn" onclick="startWorkshop()">Start Building Your Story</button>
+    </div>
+
+    <div class="roadmap-cards">
+      <div class="roadmap-card">
+        <div class="roadmap-num">01</div>
+        <h3>Write Your Logline</h3>
+        <p>Nail the one-sentence version of your story: hero, goal, and obstacle. This becomes your compass for everything else.</p>
+      </div>
+      <div class="roadmap-card">
+        <div class="roadmap-num">02</div>
+        <h3>Find the Emotional Core</h3>
+        <p>Separate the plot (what happens) from the emotional story underneath it (why we care). This is where you find the stakes that really matter.</p>
+      </div>
+      <div class="roadmap-card">
+        <div class="roadmap-num">03</div>
+        <h3>Map Your Beat Sheet</h3>
+        <p>Walk through 7 structural beats across three acts, from the opening image to the new equilibrium. This is the frame of the house.</p>
+      </div>
+      <div class="roadmap-card">
+        <div class="roadmap-num">04</div>
+        <h3>Build The Fracture</h3>
+        <p>Go deep on the most important structural moment: the second act break, where the conflict peaks and the central relationship snaps.</p>
+      </div>
+      <div class="roadmap-card">
+        <div class="roadmap-num">05</div>
+        <h3>Define the New Soul</h3>
+        <p>Who is your character at the end? They don't have to grow. They just have to be different. This is where your story finds its meaning.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: LOGLINE -->
+  <div class="step" id="step-1">
+    <div class="step-number">Step 01 of 05</div>
+    <h2>Write Your Logline</h2>
+    <p class="step-intro">A logline is your map. One or two sentences that capture the entire story. Write this before you write anything else. If you can't say it in two sentences, you don't know what your story is yet.</p>
+    <div class="teaching-box">
+      <div class="teaching-label">The Formula</div>
+      <p>A story recounts the struggle of a <strong>hero</strong> fighting an <strong>obstacle</strong> to achieve a <strong>goal</strong>. The bigger the obstacle, the more interesting. The better the goal, the more we care.</p>
+      <div class="teaching-example">
+        <div class="ex-label">Example: The Shawshank Redemption</div>
+        A quiet banker, wrongly convicted of murder, must survive decades in a brutal prison while a corrupt warden exploits him at every turn, all to reclaim his freedom and prove that hope can't be locked up.
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Who is your hero?</label>
+      <input type="text" id="hero" placeholder="e.g. A burned-out nurse, a ten-year-old con artist, a retired hitman..." />
+    </div>
+    <div class="field-group">
+      <label>What do they want? <span class="hint">(the concrete goal)</span></label>
+      <input type="text" id="goal" placeholder="e.g. Win the custody battle, find the buried treasure, escape the city..." />
+    </div>
+    <div class="field-group">
+      <label>What's in the way? <span class="hint">(the obstacle)</span></label>
+      <input type="text" id="obstacle" placeholder="e.g. A corrupt judge, a rival crew, a military lockdown..." />
+    </div>
+    <div class="field-group">
+      <label>Now write the full logline <span class="hint">(one or two sentences)</span></label>
+      <textarea id="logline" class="short" placeholder="Put it together. [Hero] must [goal] while [obstacle] stands in the way."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToStep(0)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="completeStep(1)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: EMOTIONAL STORY -->
+  <div class="step" id="step-2">
+    <div class="step-number">Step 02 of 05</div>
+    <h2>Find the Emotional Story</h2>
+    <p class="step-intro">What you just wrote is the <strong>plot</strong>, the events that happen. Now find the emotional story underneath. This is what the audience actually connects to. It's the reason we root for someone even when they do terrible things.</p>
+    <div class="teaching-box">
+      <div class="teaching-label">Plot vs. Emotional Story</div>
+      <p>In Finding Nemo, the <strong>plot</strong> is: clownfish dad swims across the ocean, dodges sharks and jellyfish, finds his kidnapped son in a dentist's fish tank.</p>
+      <p>The <strong>emotional story</strong> is: Marlin is so paralyzed by grief over losing his wife that he's suffocating his son with fear. He doesn't just need to find Nemo. He needs to learn to let go. The journey forces him to trust strangers, take risks, and accept that he can't protect Nemo from everything. <em>That's</em> why we care.</p>
+      <div class="teaching-example">
+        <div class="ex-label">Example: The Shawshank Redemption</div>
+        <strong>Plot:</strong> Innocent man goes to prison, eventually escapes.<br>
+        <strong>Emotional story:</strong> Andy Dufresne refuses to let the institution crush his spirit. But the deeper emotional story belongs to Red, a man who has given up on ever living a real life again. Andy doesn't just escape. He gives Red a reason to hope. That final scene isn't about freedom from prison. It's about freedom from despair.
+      </div>
+    </div>
+    <div class="field-group">
+      <label>What does your hero <em>really</em> need? <span class="hint">(not the surface goal, the emotional one)</span></label>
+      <textarea id="emotional-need" class="short" placeholder="e.g. Forgiveness from their mother, proof they're not a fraud, permission to let go..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>What are the emotional stakes? <span class="hint">(what happens if they fail?)</span></label>
+      <textarea id="emotional-stakes" class="short" placeholder="e.g. They'll never forgive themselves, the relationship dies forever, they become what they feared..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>Why do we root for them now? <span class="hint">(this is the engine of empathy)</span></label>
+      <textarea id="why-root" class="short" placeholder="What makes the audience care about this person and this outcome?"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(1)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="completeStep(2)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: BEAT SHEET -->
+  <div class="step" id="step-3">
+    <div class="step-number">Step 03 of 05</div>
+    <h2>Map Your Beats</h2>
+    <p class="step-intro">These are the 7 structural beats you need to hit before you start writing. Think of this as the frame of the house. You're not decorating yet, you're making sure it stands up.</p>
+    <div class="teaching-box">
+      <div class="teaching-label">Why Structure Matters</div>
+      <p>A writer needs two things: <strong>something to say</strong> and <strong>knowing how to say it.</strong> Something to say comes from experience. Knowing how to say it is structure: the order in which you pull everything out of the crate. The difference between a pile of random parts and something that holds a life together.</p>
+    </div>
+    <div class="beat-grid">
+      <div class="act-divider">Act I: Setup</div>
+      <div class="beat-card">
+        <div class="beat-header">
+          <span class="beat-number">01</span>
+          <span class="beat-name">Opening Image</span>
+        </div>
+        <div class="beat-desc">The world before the story starts. Who is this person and what's their life like?</div>
+        <textarea id="beat-1" class="short" placeholder="What do we see first?"></textarea>
+      </div>
+      <div class="beat-card">
+        <div class="beat-header">
+          <span class="beat-number">02</span>
+          <span class="beat-name">The Disruption</span>
+        </div>
+        <div class="beat-desc">Something happens that pushes them into the story. The inciting incident. There's no going back.</div>
+        <textarea id="beat-2" class="short" placeholder="What changes everything?"></textarea>
+      </div>
+      <div class="act-divider">Act II: Confrontation</div>
+      <div class="beat-card">
+        <div class="beat-header">
+          <span class="beat-number">03</span>
+          <span class="beat-name">New World</span>
+        </div>
+        <div class="beat-desc">The hero enters unfamiliar territory. New rules, new allies, new problems. Things seem possible.</div>
+        <textarea id="beat-3" class="short" placeholder="What's the new landscape?"></textarea>
+      </div>
+      <div class="beat-card">
+        <div class="beat-header">
+          <span class="beat-number">04</span>
+          <span class="beat-name">The Squeeze</span>
+        </div>
+        <div class="beat-desc">The midpoint. Stakes raise. The easy path closes. The conflict gets personal and unavoidable.</div>
+        <textarea id="beat-4" class="short" placeholder="How does the pressure build?"></textarea>
+      </div>
+      <div class="beat-card">
+        <div class="beat-header">
+          <span class="beat-number">05</span>
+          <span class="beat-name">The Fracture</span>
+        </div>
+        <div class="beat-desc">The breaking point. "I'm done. It's over." Someone checks out, physically or emotionally. The central relationship snaps. This is where Act II ends.</div>
+        <textarea id="beat-5" class="short" placeholder="What breaks? Who walks away?"></textarea>
+      </div>
+      <div class="act-divider">Act III: Resolution</div>
+      <div class="beat-card">
+        <div class="beat-header">
+          <span class="beat-number">06</span>
+          <span class="beat-name">The Push</span>
+        </div>
+        <div class="beat-desc">Despite the fracture, the hero commits to the final confrontation. They go all in.</div>
+        <textarea id="beat-6" class="short" placeholder="What drives them to keep going?"></textarea>
+      </div>
+      <div class="beat-card">
+        <div class="beat-header">
+          <span class="beat-number">07</span>
+          <span class="beat-name">New Equilibrium</span>
+        </div>
+        <div class="beat-desc">The dust settles. The hero is changed. We see the new view of their soul.</div>
+        <textarea id="beat-7" class="short" placeholder="How does it end? Who are they now?"></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(2)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="completeStep(3)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: THE FRACTURE -->
+  <div class="step" id="step-4">
+    <div class="step-number">Step 04 of 05</div>
+    <h2>Build The Fracture</h2>
+    <p class="step-intro">This is the most important structural moment in your story. <strong>The Fracture</strong> is the second act break, the point where someone says "I'm done with you. It's over." The central relationship snaps. Everything your conflict has been building toward erupts here.</p>
+    <div class="teaching-box">
+      <div class="teaching-label">How Conflict Builds to The Fracture</div>
+      <p>All drama is conflict. Your characters can be friends, family, lovers, but they <strong>have to disagree about something</strong> and it needs to escalate. Every scene should tighten the screw until the breaking point becomes inevitable.</p>
+      <p>The Fracture isn't necessarily physical. "I'm checked out." "We're done." "I no longer care about fixing this." It's the emotional severing.</p>
+      <div class="teaching-example">
+        <div class="ex-label">Device: Opening on The Fracture</div>
+        Some stories open on this moment, then flash back: "How did we get here?" This tells the audience where things are headed and makes every earlier scene feel loaded with dread.
+      </div>
+    </div>
+    <div class="field-group">
+      <label>What is the central conflict? <span class="hint">(what do they disagree about?)</span></label>
+      <textarea id="central-conflict" class="short" placeholder="e.g. She thinks loyalty means staying; he thinks it means leaving..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>How does it escalate? <span class="hint">(list 2-3 moments where it gets worse)</span></label>
+      <textarea id="escalation" placeholder="What are the pressure points that lead to the breaking point?"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Describe The Fracture itself <span class="hint">(the moment it snaps)</span></label>
+      <textarea id="fracture-moment" placeholder="Who says 'I'm done'? What does it look like? What's left in the room after?"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(3)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="completeStep(4)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: NEW SOUL -->
+  <div class="step" id="step-5">
+    <div class="step-number">Step 05 of 05</div>
+    <h2>The New Soul</h2>
+    <p class="step-intro">At the end, in the last or second-to-last scene, we need to see a <strong>new view of the character's soul</strong>. Without this, you don't have a story. They don't have to grow. They don't have to be a better person. They just have to be <em>different</em>.</p>
+    <div class="teaching-box">
+      <div class="teaching-label">Change, Not Growth</div>
+      <p>This isn't a self-help arc. Your character might get worse. They might harden. They might finally see something they've been avoiding. The point is that the story <em>did something to them</em>, and we can see it.</p>
+      <p>Ask: if someone watched the first scene and the last scene back to back, would they see a different person? That difference is your story's meaning.</p>
+    </div>
+    <div class="field-group">
+      <label>Who is your character at the start? <span class="hint">(their emotional state, beliefs, posture toward the world)</span></label>
+      <textarea id="soul-before" class="short" placeholder="e.g. Afraid of risk, convinced they don't deserve love, performing confidence..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>Who are they at the end? <span class="hint">(what shifted?)</span></label>
+      <textarea id="soul-after" class="short" placeholder="e.g. Quietly certain, grieving but free, finally honest about what they want..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>What's the final image? <span class="hint">(the last thing we see that shows the change)</span></label>
+      <textarea id="final-image" placeholder="Describe the visual or moment that crystallizes who they've become."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(4)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="completeStep(5)">See Your Blueprint &rarr;</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: BLUEPRINT -->
+  <div class="step" id="step-6">
+    <div class="step-number">Your Story Blueprint</div>
+    <h2 id="blueprint-title">Blueprint</h2>
+    <p class="step-intro">Here's everything you've built, assembled into one document. This is what professional writers have before they start writing pages.</p>
+    <div id="blueprint-content"></div>
+    <div class="export-actions">
+      <button class="btn btn-primary" onclick="downloadBlueprint()">Download as .txt</button>
+      <button class="btn btn-secondary" onclick="copyBlueprint()">Copy to Clipboard</button>
+      <button class="btn btn-secondary" onclick="window.print()">Print</button>
+      <button class="btn btn-secondary" onclick="startOver()">Start Over</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(5)">&larr; Back to Edit</button>
+      <span></span>
+    </div>
+  </div>
+
+</main>
+
+<script>
+let currentStep = 0;
+let highestUnlocked = 0;
+
+const allFields = [
+  'hero','goal','obstacle','logline',
+  'emotional-need','emotional-stakes','why-root',
+  'beat-1','beat-2','beat-3','beat-4','beat-5','beat-6','beat-7',
+  'central-conflict','escalation','fracture-moment',
+  'soul-before','soul-after','final-image'
+];
+
+function saveField(id) {
+  const el = document.getElementById(id);
+  if (el) sessionStorage.setItem('st_' + id, el.value);
+}
+
+function loadField(id) {
+  const el = document.getElementById(id);
+  const val = sessionStorage.getItem('st_' + id);
+  if (el && val) el.value = val;
+}
+
+document.addEventListener('input', (e) => {
+  if (e.target.id) saveField(e.target.id);
+});
+
+function loadAll() {
+  allFields.forEach(loadField);
+  const saved = sessionStorage.getItem('st_highestUnlocked');
+  if (saved) highestUnlocked = parseInt(saved);
+}
+
+function startWorkshop() { goToStep(1); }
+
+function goToStep(n) {
+  if (n > 0 && n > highestUnlocked + 1) return;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  currentStep = n;
+  document.getElementById('progressContainer').style.display = n === 0 ? 'none' : 'block';
+  if (n === 6) buildBlueprint();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function completeStep(n) {
+  if (n > highestUnlocked) {
+    highestUnlocked = n;
+    sessionStorage.setItem('st_highestUnlocked', highestUnlocked);
+  }
+  goToStep(n + 1);
+}
+
+function updateProgress() {
+  const steps = document.querySelectorAll('.progress-step');
+  steps.forEach((step, i) => {
+    const num = i + 1;
+    step.classList.remove('active', 'complete', 'locked');
+    if (num === currentStep) step.classList.add('active');
+    else if (num <= highestUnlocked) step.classList.add('complete');
+    else if (num > highestUnlocked + 1) step.classList.add('locked');
+  });
+  document.getElementById('progressFill').style.width =
+    Math.max(0, (highestUnlocked / steps.length) * 100) + '%';
+}
+
+function getVal(id) {
+  return (document.getElementById(id)?.value || '').trim();
+}
+
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function buildBlueprint() {
+  document.getElementById('blueprint-title').textContent =
+    getVal('logline') ? 'Your Story Blueprint' : 'Blueprint';
+
+  const e = (id) => esc(getVal(id)) || '<span class="empty">-</span>';
+  const sections = [
+    { header: 'Logline', body: `<p>${e('logline')}</p>` },
+    { header: 'Core Elements', body: `
+      <div class="label-sm">Hero</div><p>${e('hero')}</p>
+      <div class="label-sm">Goal</div><p>${e('goal')}</p>
+      <div class="label-sm">Obstacle</div><p>${e('obstacle')}</p>` },
+    { header: 'Emotional Story', body: `
+      <div class="label-sm">True Need</div><p>${e('emotional-need')}</p>
+      <div class="label-sm">Emotional Stakes</div><p>${e('emotional-stakes')}</p>
+      <div class="label-sm">Why We Root for Them</div><p>${e('why-root')}</p>` },
+    { header: 'Beat Sheet', body: [
+      ['Opening Image','beat-1'],['The Disruption','beat-2'],['New World','beat-3'],
+      ['The Squeeze','beat-4'],['The Fracture','beat-5'],['The Push','beat-6'],
+      ['New Equilibrium','beat-7']
+    ].map(([n,id]) => `<div class="label-sm">${n}</div><p>${e(id)}</p>`).join('') },
+    { header: 'The Fracture (Deep Dive)', body: `
+      <div class="label-sm">Central Conflict</div><p>${e('central-conflict')}</p>
+      <div class="label-sm">Escalation</div><p>${e('escalation')}</p>
+      <div class="label-sm">The Fracture Moment</div><p>${e('fracture-moment')}</p>` },
+    { header: 'Character Transformation', body: `
+      <div class="label-sm">Soul: Before</div><p>${e('soul-before')}</p>
+      <div class="label-sm">Soul: After</div><p>${e('soul-after')}</p>
+      <div class="label-sm">Final Image</div><p>${e('final-image')}</p>` }
+  ];
+
+  document.getElementById('blueprint-content').innerHTML = sections.map(s => `
+    <div class="summary-section">
+      <div class="summary-header">${s.header}</div>
+      <div class="summary-body">${s.body}</div>
+    </div>`).join('');
+}
+
+function getBlueprintText() {
+  const g = (id) => getVal(id) || '-';
+  const beats = ['Opening Image','The Disruption','New World','The Squeeze',
+    'The Fracture','The Push','New Equilibrium'];
+  return [
+    'STORY BLUEPRINT', '='.repeat(40), '',
+    'LOGLINE', g('logline'), '',
+    'HERO: ' + g('hero'), 'GOAL: ' + g('goal'), 'OBSTACLE: ' + g('obstacle'), '',
+    'EMOTIONAL STORY',
+    'True Need: ' + g('emotional-need'),
+    'Stakes: ' + g('emotional-stakes'),
+    'Why We Root: ' + g('why-root'), '',
+    'BEAT SHEET',
+    ...beats.map((n,i) => `${i+1}. ${n}: ${g('beat-'+(i+1))}`), '',
+    'THE FRACTURE',
+    'Conflict: ' + g('central-conflict'),
+    'Escalation: ' + g('escalation'),
+    'The Moment: ' + g('fracture-moment'), '',
+    'CHARACTER TRANSFORMATION',
+    'Before: ' + g('soul-before'),
+    'After: ' + g('soul-after'),
+    'Final Image: ' + g('final-image')
+  ].join('\n');
+}
+
+function copyBlueprint() {
+  navigator.clipboard.writeText(getBlueprintText()).then(() => {
+    const btn = document.querySelector('[onclick="copyBlueprint()"]');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+function downloadBlueprint() {
+  const text = getBlueprintText();
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'story-blueprint.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const btn = document.querySelector('[onclick="downloadBlueprint()"]');
+  const orig = btn.textContent;
+  btn.textContent = 'Downloaded!';
+  setTimeout(() => btn.textContent = orig, 2000);
+}
+
+function startOver() {
+  if (!confirm('This will clear all your work. Are you sure?')) return;
+  allFields.forEach(id => sessionStorage.removeItem('st_' + id));
+  sessionStorage.removeItem('st_highestUnlocked');
+  allFields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  highestUnlocked = 0;
+  goToStep(0);
+}
+
+loadAll();
+</script>
+</body>
+</html>
