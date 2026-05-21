@@ -2,868 +2,104 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>memekit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Take On Anything — Free Online Tools</title>
+<meta name="description" content="Free online tools — emoji keyboard, symbol copy paste, word counter, code editor, and more. No ads, no login.">
+<link rel="canonical" href="https://takeonanything.com/">
+<meta property="og:title" content="Take On Anything — Free Online Tools">
+<meta property="og:description" content="Free online tools — emoji keyboard, symbol copy paste, word counter, code editor. No ads, no login.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://takeonanything.com/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
 
-<!-- iOS home screen / PWA -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="memekit">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0f0f10">
-
-<!-- Icons -->
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<link rel="manifest" href="manifest.json">
-<style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #0f0f10;
-    color: #f4f4f5;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .app {
-    height: 100vh;
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-  header {
-    flex-shrink: 0;
-    padding: 10px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #1f1f23;
-  }
-  h1 {
-    margin: 0;
-    font-size: 17px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  h1 span { color: #ffde59; }
-  .stage {
-    flex: 1 1 0;
-    min-height: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at 20% 20%, #2a2a32 0%, #1a1a1f 60%);
-  }
-  .canvas-wrap {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: none;
-  }
-  .canvas-inner {
-    position: relative;
-    display: block;
-  }
-  canvas {
-    display: block;
-    border-radius: 8px;
-    background: #2a2a32;
-    border: 1px solid #3a3a45;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    width: 100%;
-    height: 100%;
-  }
-  .empty {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 2px dashed #3a3a45;
-    border-radius: 12px;
-    background: #18181c;
-    color: #6b6b75;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s, color 0.15s;
-  }
-  .empty:active {
-    border-color: #ffde59;
-    background: #1f1f25;
-    color: #ffde59;
-  }
-  .empty svg { opacity: 0.6; margin-bottom: 16px; width: 72px; height: 72px; }
-  .empty p { margin: 0; font-size: 18px; font-weight: 600; }
-  .empty .sub { font-size: 13px; font-weight: 400; opacity: 0.7; margin-top: 6px; }
-  .text-layer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-  .text-item {
-    position: absolute;
-    pointer-events: auto;
-    cursor: grab;
-    padding: 6px 8px;
-    color: #fff;
-    text-align: center;
-    white-space: pre;
-    line-height: 1.05;
-    letter-spacing: 0.01em;
-    -webkit-text-stroke: 2px #000;
-    text-shadow:
-      2px 2px 0 #000,
-      -2px 2px 0 #000,
-      2px -2px 0 #000,
-      -2px -2px 0 #000;
-    transform: translate(-50%, -50%);
-    touch-action: none;
-    transition: outline 0.1s;
-  }
-  .text-item.caps { text-transform: uppercase; }
-  .delete-handle {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: #ff5555;
-    color: #fff;
-    border: 2px solid #0f0f10;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1;
-    cursor: pointer;
-    pointer-events: auto;
-    z-index: 10;
-  }
-  .selected > .delete-handle { display: flex; }
-  .resize-handle {
-    position: absolute;
-    bottom: -10px;
-    right: -10px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #ffde59;
-    border: 2px solid #0f0f10;
-    display: none;
-    cursor: nwse-resize;
-    pointer-events: auto;
-    z-index: 10;
-    touch-action: none;
-  }
-  .selected > .resize-handle { display: block; }
-  .image-item {
-    position: absolute;
-    pointer-events: auto;
-    cursor: grab;
-    transform: translate(-50%, -50%);
-    touch-action: none;
-    transition: outline 0.1s;
-  }
-  .image-item img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    -webkit-user-drag: none;
-    user-drag: none;
-  }
-  .image-item.selected {
-    outline: 2px dashed #ffde59;
-    outline-offset: 2px;
-  }
-  .image-item.dragging { opacity: 0.85; }
-  .text-item.selected {
-    outline: 2px dashed #ffde59;
-    outline-offset: 2px;
-    cursor: grabbing;
-  }
-  .text-item.dragging { opacity: 0.85; }
-  .toolbar {
-    flex-shrink: 0;
-    border-top: 1px solid #1f1f23;
-    padding: 10px;
-    background: #131317;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .row {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .input {
-    flex: 1;
-    background: #1f1f25;
-    border: 1px solid #2a2a32;
-    color: #f4f4f5;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: inherit;
-    outline: none;
-    min-width: 0;
-  }
-  .input:focus { border-color: #ffde59; }
-  button {
-    background: #1f1f25;
-    border: 1px solid #2a2a32;
-    color: #f4f4f5;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    transition: transform 0.05s, background 0.15s;
-    white-space: nowrap;
-  }
-  button:active { transform: scale(0.97); }
-  button.primary {
-    background: #ffde59;
-    color: #0f0f10;
-    border-color: #ffde59;
-  }
-  button.icon {
-    padding: 10px 12px;
-    min-width: 44px;
-  }
-  button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  .size-controls {
-    display: none;
-    gap: 6px;
-    align-items: center;
-    padding: 6px 8px;
-    background: #1f1f25;
-    border-radius: 10px;
-  }
-  .size-controls.visible { display: flex; }
-  .size-controls span {
-    font-size: 11px;
-    color: #9b9ba5;
-    flex: 1;
-  }
-  .size-controls button {
-    padding: 6px 10px;
-    font-size: 15px;
-    min-width: 36px;
-  }
-  input[type="file"] { display: none; }
-  .hint {
-    font-size: 10px;
-    color: #6b6b75;
-    text-align: center;
-    margin-top: 2px;
-  }
-  @media (max-height: 600px) {
-    .hint { display: none; }
-    header { padding: 8px 14px; }
-    h1 { font-size: 15px; }
-    .toolbar { padding: 8px; gap: 6px; }
-    button, .input { padding: 8px 10px; font-size: 13px; }
-  }
-</style>
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1>meme<span>kit</span></h1>
-    <button id="downloadBtn" disabled>Save</button>
-  </header>
 
-  <div class="stage" id="stage">
-    <div class="empty" id="empty" onclick="document.getElementById('fileInput').click()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <path d="m21 15-5-5L5 21"/>
-      </svg>
-      <p>tap to choose a photo</p>
-      <p class="sub">camera or gallery</p>
+<header class="site-header">
+  <a href="/" class="site-logo">takeonanything<span class="dim">.com</span></a>
+  <nav class="site-nav">
+    <a href="/emoji/">Emoji</a>
+    <a href="/symbols/">Symbols</a>
+    <a href="/word-counter/">Word Counter</a>
+    <a href="/about/">About</a>
+  </nav>
+</header>
+
+<main class="site-main">
+  <section class="hero">
+    <h1>Free tools.<br><span class="accent">No ads. No login.</span></h1>
+    <p>Simple online tools that do one thing well. Everything I needed kept being buried under ads and account walls, so I built clean versions and put them here.</p>
+  </section>
+
+  <section class="tools-grid">
+
+    <a href="/emoji/" class="tool-card">
+      <div class="tool-icon">😀</div>
+      <h3>Emoji Copy &amp; Paste</h3>
+      <p>Thousands of emojis organized by category. Click to copy. Browse by holiday, mood, or theme.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/symbols/" class="tool-card">
+      <div class="tool-icon">™</div>
+      <h3>Symbol Copy &amp; Paste</h3>
+      <p>Trademark, copyright, arrows, math, currency, Greek letters, and more. Click to copy.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/word-counter/" class="tool-card">
+      <div class="tool-icon">📝</div>
+      <h3>Word &amp; Character Counter</h3>
+      <p>Paste text, get instant counts — words, characters, sentences, paragraphs, reading time.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/editor/" class="tool-card">
+      <div class="tool-icon">💻</div>
+      <h3>Code Editor &amp; Preview</h3>
+      <p>Write HTML, CSS, and JavaScript with instant live preview. Syntax highlighting, shareable links.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/image-compressor/" class="tool-card">
+  <div class="tool-icon">📷</div>
+  <h3>Image Compressor</h3>
+  <p>Reduce JPG, PNG, and WebP file sizes. Upload multiple images, adjust quality, download smaller versions.</p>
+  <span class="tool-tag">Live</span>
+</a>
+
+    <a class="tool-card" href="/notepad/">
+  <div class="tool-icon">📝</div>
+  <h3>Online Notepad</h3>
+  <p>Browser-based notepad with auto-save. Lined paper style with undo, copy, and download.</p>
+  <div class="tool-tag">Live</div>
+</a>
+
+    <div class="tool-card coming-soon">
+      <div class="tool-icon">🔤</div>
+      <h3>JSON Formatter</h3>
+      <p>Paste messy JSON, get it formatted, validated, and searchable.</p>
+      <span class="tool-tag">Coming soon</span>
     </div>
-    <div class="canvas-wrap" id="canvasWrap" style="display:none">
-      <div class="canvas-inner" id="canvasInner">
-        <canvas id="canvas"></canvas>
-        <div class="text-layer" id="textLayer"></div>
-      </div>
-    </div>
+
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/about/">About</a>
+    <a href="/privacy/">Privacy</a>
+    <a href="/terms/">Terms</a>
   </div>
+  <span class="footer-copy">&copy; 2026 takeonanything.com</span>
+</footer>
 
-  <div class="toolbar">
-    <div class="size-controls" id="sizeControls">
-      <button onclick="cycleFont()" id="fontBtn">Impact</button>
-      <button onclick="toggleItemCaps()" id="itemCapsBtn">Aa</button>
-      <button onclick="resizeText(-4)">A-</button>
-      <button onclick="resizeText(4)">A+</button>
-      <button onclick="deleteText()" title="delete this text">🗑</button>
-    </div>
-    <div class="row">
-      <input type="text" class="input" id="textInput" placeholder="type caption, hit +">
-      <button class="primary icon" id="addBtn">+</button>
-    </div>
-    <div class="row">
-      <button class="icon" onclick="document.getElementById('fileInput').click()">📷 choose photo</button>
-      <button class="icon" onclick="document.getElementById('overlayInput').click()">🖼 add image</button>
-      <button class="icon" onclick="clearAll()">clear</button>
-    </div>
-    <div class="hint">drag to move · tap to select · ✕ deletes</div>
-  </div>
-</div>
-
-<input type="file" id="fileInput" accept="image/*">
-<input type="file" id="overlayInput" accept="image/*">
-
-<script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const canvasWrap = document.getElementById('canvasWrap');
-const empty = document.getElementById('empty');
-const textLayer = document.getElementById('textLayer');
-const textInput = document.getElementById('textInput');
-const addBtn = document.getElementById('addBtn');
-const downloadBtn = document.getElementById('downloadBtn');
-const sizeControls = document.getElementById('sizeControls');
-const fileInput = document.getElementById('fileInput');
-const overlayInput = document.getElementById('overlayInput');
-
-let img = null;
-let texts = []; // { kind:'text', id, text, x, y, size, caps, fontIdx, el }
-let images = []; // { kind:'image', id, img, x, y, size, aspect, el }
-let selectedId = null;
-let nextId = 1;
-
-// Fonts available — name shown on button, fontFamily used for both CSS and canvas
-const FONTS = [
-  { name: 'Impact',  family: 'Impact, "Arial Black", sans-serif',         weight: 'bold',   stroke: 0.12 },
-  { name: 'Serif',   family: 'Georgia, "Times New Roman", serif',          weight: 'bold',   stroke: 0.08 },
-  { name: 'Sans',    family: '-apple-system, "Helvetica Neue", Arial, sans-serif', weight: '400', stroke: 0.06 },
-  { name: 'Mono',    family: 'Menlo, Monaco, "Courier New", monospace',    weight: 'bold',   stroke: 0.08 },
-  { name: 'Script',  family: '"Snell Roundhand", "Brush Script MT", cursive', weight: '400', stroke: 0.07 },
-];
-
-function getItem(id) {
-  return texts.find(t => t.id === id) || images.find(i => i.id === id);
-}
-
-// Background photo upload
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const newImg = new Image();
-    newImg.onload = () => {
-      img = newImg;
-      drawImage();
-      empty.style.display = 'none';
-      canvasWrap.style.display = 'block';
-      downloadBtn.disabled = false;
-      // Reflow existing items after canvas size change
-      texts.forEach(t => positionText(t.el, t));
-      images.forEach(i => positionImage(i.el, i));
-    };
-    newImg.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-  fileInput.value = '';
-});
-
-// Overlay image upload
-overlayInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (!img) { flashEmpty(); return; }
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const newImg = new Image();
-    newImg.onload = () => addImage(newImg);
-    newImg.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-  overlayInput.value = '';
-});
-
-function drawImage() {
-  if (!img) return;
-  const maxW = 1200;
-  const maxH = 1200;
-  let w = img.naturalWidth;
-  let h = img.naturalHeight;
-  if (w > maxW || h > maxH) {
-    const ratio = Math.min(maxW / w, maxH / h);
-    w = Math.round(w * ratio);
-    h = Math.round(h * ratio);
-  }
-  canvas.width = w;
-  canvas.height = h;
-  ctx.drawImage(img, 0, 0, w, h);
-  fitCanvasInner();
-}
-
-function fitCanvasInner() {
-  if (!img) return;
-  const inner = document.getElementById('canvasInner');
-  const stage = document.getElementById('stage');
-  const stageRect = stage.getBoundingClientRect();
-  // Leave a small margin so it doesn't touch edges
-  const availW = stageRect.width - 24;
-  const availH = stageRect.height - 24;
-  const aspect = canvas.width / canvas.height;
-  let w = availW;
-  let h = w / aspect;
-  if (h > availH) {
-    h = availH;
-    w = h * aspect;
-  }
-  inner.style.width = w + 'px';
-  inner.style.height = h + 'px';
-}
-
-// ---------- TEXT ----------
-addBtn.addEventListener('click', addText);
-textInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addText();
-});
-
-function addText() {
-  const value = textInput.value.trim();
-  if (!value || !img) {
-    if (!img) flashEmpty();
-    return;
-  }
-  const id = nextId++;
-  const item = {
-    kind: 'text',
-    id,
-    text: value,
-    x: 50,
-    y: texts.length === 0 ? 12 : (texts.length === 1 ? 88 : 50),
-    size: 8,
-    caps: true,
-    fontIdx: 0,
-  };
-  texts.push(item);
-  renderText(item);
-  selectItem(id);
-  textInput.value = '';
-}
-
-function renderText(item) {
-  let el = document.querySelector(`[data-id="${item.id}"]`);
-  if (!el) {
-    el = document.createElement('div');
-    el.className = 'text-item';
-    el.dataset.id = item.id;
-    textLayer.appendChild(el);
-    attachDrag(el, item, 'text');
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      selectItem(item.id);
-    });
-    // Inline delete handle
-    const del = document.createElement('div');
-    del.className = 'delete-handle';
-    del.textContent = '✕';
-    del.addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteItem(item.id);
-    });
-    del.addEventListener('mousedown', (e) => e.stopPropagation());
-    del.addEventListener('touchstart', (e) => e.stopPropagation());
-    el.appendChild(del);
-    // Resize handle
-    const resize = document.createElement('div');
-    resize.className = 'resize-handle';
-    attachTextResize(resize, item);
-    el.appendChild(resize);
-  }
-  // Update text content while preserving handles
-  const del = el.querySelector('.delete-handle');
-  const resize = el.querySelector('.resize-handle');
-  el.childNodes.forEach(n => {
-    if (n !== del && n !== resize) n.remove();
-  });
-  el.insertBefore(document.createTextNode(item.text), del);
-  el.classList.toggle('caps', item.caps);
-  const font = FONTS[item.fontIdx || 0];
-  el.style.fontFamily = font.family;
-  el.style.fontWeight = font.weight;
-  positionText(el, item);
-  item.el = el;
-}
-
-function toggleItemCaps() {
-  const item = getItem(selectedId);
-  if (!item || item.kind !== 'text') return;
-  item.caps = !item.caps;
-  item.el.classList.toggle('caps', item.caps);
-  updateItemCapsBtn(item);
-}
-
-function updateItemCapsBtn(item) {
-  const btn = document.getElementById('itemCapsBtn');
-  if (!btn) return;
-  btn.textContent = item.caps ? 'AA' : 'aa';
-}
-
-function cycleFont() {
-  const item = getItem(selectedId);
-  if (!item || item.kind !== 'text') return;
-  item.fontIdx = ((item.fontIdx || 0) + 1) % FONTS.length;
-  const font = FONTS[item.fontIdx];
-  item.el.style.fontFamily = font.family;
-  item.el.style.fontWeight = font.weight;
-  updateFontBtn(item);
-}
-
-function updateFontBtn(item) {
-  const btn = document.getElementById('fontBtn');
-  if (!btn) return;
-  btn.textContent = FONTS[item.fontIdx || 0].name;
-}
-
-function positionText(el, item) {
-  el.style.left = item.x + '%';
-  el.style.top = item.y + '%';
-  const canvasRect = canvas.getBoundingClientRect();
-  const fontPx = Math.max(12, canvasRect.height * (item.size / 100));
-  el.style.fontSize = fontPx + 'px';
-}
-
-function resizeText(delta) {
-  const item = getItem(selectedId);
-  if (!item || item.kind !== 'text') return;
-  item.size = Math.max(3, Math.min(30, item.size + delta));
-  positionText(item.el, item);
-}
-
-// ---------- IMAGE OVERLAY ----------
-function addImage(imgEl) {
-  const id = nextId++;
-  const aspect = imgEl.naturalWidth / imgEl.naturalHeight;
-  // Offset each new image so they don't stack invisibly
-  const offset = (images.length % 5) * 6;
-  const item = {
-    kind: 'image',
-    id,
-    img: imgEl,
-    x: 50 + offset,
-    y: 50 + offset,
-    size: 35,
-    aspect,
-  };
-  images.push(item);
-  renderImage(item);
-  selectItem(id);
-}
-
-function renderImage(item) {
-  // Always create a fresh element — don't reuse
-  const el = document.createElement('div');
-  el.className = 'image-item';
-  el.dataset.id = item.id;
-  const imgTag = document.createElement('img');
-  imgTag.src = item.img.src;
-  el.appendChild(imgTag);
-  textLayer.appendChild(el);
-  attachDrag(el, item, 'image');
-  el.addEventListener('click', (e) => {
-    e.stopPropagation();
-    selectItem(item.id);
-  });
-  // Delete handle
-  const del = document.createElement('div');
-  del.className = 'delete-handle';
-  del.textContent = '✕';
-  del.addEventListener('click', (e) => {
-    e.stopPropagation();
-    deleteItem(item.id);
-  });
-  del.addEventListener('mousedown', (e) => e.stopPropagation());
-  del.addEventListener('touchstart', (e) => e.stopPropagation());
-  el.appendChild(del);
-  // Resize handle
-  const resize = document.createElement('div');
-  resize.className = 'resize-handle';
-  attachResize(resize, item);
-  el.appendChild(resize);
-  positionImage(el, item);
-  item.el = el;
-}
-
-function positionImage(el, item) {
-  const canvasRect = canvas.getBoundingClientRect();
-  const widthPx = canvasRect.width * (item.size / 100);
-  const heightPx = widthPx / item.aspect;
-  el.style.left = item.x + '%';
-  el.style.top = item.y + '%';
-  el.style.width = widthPx + 'px';
-  el.style.height = heightPx + 'px';
-}
-
-function attachResize(handle, item) {
-  let startX, startY, startSize;
-  const onMove = (e) => {
-    e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
-    const dx = point.clientX - startX;
-    const rect = canvas.getBoundingClientRect();
-    const deltaPct = (dx / rect.width) * 100;
-    item.size = Math.max(5, Math.min(150, startSize + deltaPct * 2));
-    positionImage(item.el, item);
-  };
-  const onEnd = () => {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onEnd);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onEnd);
-  };
-  const onStart = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
-    startX = point.clientX;
-    startY = point.clientY;
-    startSize = item.size;
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchmove', onMove, { passive: false });
-    document.addEventListener('touchend', onEnd);
-  };
-  handle.addEventListener('mousedown', onStart);
-  handle.addEventListener('touchstart', onStart, { passive: false });
-}
-
-function attachTextResize(handle, item) {
-  let startX, startY, startSize;
-  const onMove = (e) => {
-    e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
-    const dx = point.clientX - startX;
-    const dy = point.clientY - startY;
-    const rect = canvas.getBoundingClientRect();
-    // Use diagonal distance so dragging out grows, dragging in shrinks
-    const delta = (dx + dy) / 2;
-    const deltaPct = (delta / rect.height) * 100;
-    item.size = Math.max(3, Math.min(30, startSize + deltaPct));
-    positionText(item.el, item);
-  };
-  const onEnd = () => {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onEnd);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onEnd);
-  };
-  const onStart = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
-    startX = point.clientX;
-    startY = point.clientY;
-    startSize = item.size;
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchmove', onMove, { passive: false });
-    document.addEventListener('touchend', onEnd);
-  };
-  handle.addEventListener('mousedown', onStart);
-  handle.addEventListener('touchstart', onStart, { passive: false });
-}
-
-// ---------- SELECTION ----------
-function selectItem(id) {
-  selectedId = id;
-  document.querySelectorAll('.text-item, .image-item').forEach(el => {
-    el.classList.toggle('selected', el.dataset.id == id);
-  });
-  const item = getItem(id);
-  // Only show toolbar with caps/size/font buttons for text
-  if (item && item.kind === 'text') {
-    sizeControls.classList.add('visible');
-    updateItemCapsBtn(item);
-    updateFontBtn(item);
-  } else {
-    sizeControls.classList.remove('visible');
-  }
-}
-
-function deselect() {
-  selectedId = null;
-  document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-  sizeControls.classList.remove('visible');
-}
-
-canvasWrap.addEventListener('click', (e) => {
-  if (e.target === canvasWrap || e.target === canvas || e.target === textLayer) {
-    deselect();
-  }
-});
-
-function deleteItem(id) {
-  const tIdx = texts.findIndex(t => t.id === id);
-  if (tIdx !== -1) {
-    texts[tIdx].el.remove();
-    texts.splice(tIdx, 1);
-  }
-  const iIdx = images.findIndex(i => i.id === id);
-  if (iIdx !== -1) {
-    images[iIdx].el.remove();
-    images.splice(iIdx, 1);
-  }
-  if (selectedId === id) deselect();
-}
-
-function deleteText() { // kept for size-controls trash button
-  if (selectedId !== null) deleteItem(selectedId);
-}
-
-function clearAll() {
-  texts.forEach(t => t.el.remove());
-  images.forEach(i => i.el.remove());
-  texts = [];
-  images = [];
-  deselect();
-}
-
-function flashEmpty() {
-  empty.style.color = '#ff6b6b';
-  setTimeout(() => empty.style.color = '', 600);
-}
-
-// ---------- DRAG ----------
-function attachDrag(el, item, kind) {
-  let startX, startY, startPctX, startPctY;
-  let dragging = false;
-
-  const onMove = (e) => {
-    if (!dragging) return;
-    e.preventDefault();
-    const point = e.touches ? e.touches[0] : e;
-    const dx = point.clientX - startX;
-    const dy = point.clientY - startY;
-    const rect = canvas.getBoundingClientRect();
-    item.x = Math.max(0, Math.min(100, startPctX + (dx / rect.width) * 100));
-    item.y = Math.max(0, Math.min(100, startPctY + (dy / rect.height) * 100));
-    if (kind === 'text') positionText(el, item);
-    else positionImage(el, item);
-  };
-
-  const onEnd = () => {
-    dragging = false;
-    el.classList.remove('dragging');
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onEnd);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onEnd);
-  };
-
-  const onStart = (e) => {
-    // Ignore drags that started on the delete or resize handle
-    if (e.target.classList.contains('delete-handle') ||
-        e.target.classList.contains('resize-handle')) return;
-    e.stopPropagation();
-    selectItem(item.id);
-    dragging = true;
-    el.classList.add('dragging');
-    const point = e.touches ? e.touches[0] : e;
-    startX = point.clientX;
-    startY = point.clientY;
-    startPctX = item.x;
-    startPctY = item.y;
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchmove', onMove, { passive: false });
-    document.addEventListener('touchend', onEnd);
-  };
-
-  el.addEventListener('mousedown', onStart);
-  el.addEventListener('touchstart', onStart, { passive: true });
-}
-
-// Reposition on window resize
-window.addEventListener('resize', () => {
-  fitCanvasInner();
-  texts.forEach(t => positionText(t.el, t));
-  images.forEach(i => positionImage(i.el, i));
-});
-
-// ---------- DOWNLOAD ----------
-downloadBtn.addEventListener('click', () => {
-  if (!img) return;
-  drawImage();
-  const canvasRect = canvas.getBoundingClientRect();
-  const scale = canvas.width / canvasRect.width;
-
-  // Render images first (under text)
-  images.forEach(item => {
-    const widthPx = canvasRect.width * (item.size / 100) * scale;
-    const heightPx = widthPx / item.aspect;
-    const cx = (item.x / 100) * canvas.width;
-    const cy = (item.y / 100) * canvas.height;
-    ctx.drawImage(item.img, cx - widthPx / 2, cy - heightPx / 2, widthPx, heightPx);
-  });
-
-  // Then text on top
-  texts.forEach(item => {
-    const fontPx = Math.max(12, canvasRect.height * (item.size / 100)) * scale;
-    const font = FONTS[item.fontIdx || 0];
-    ctx.font = `${font.weight} ${fontPx}px ${font.family}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = fontPx * font.stroke;
-    ctx.strokeStyle = '#000';
-    ctx.fillStyle = '#fff';
-    const x = (item.x / 100) * canvas.width;
-    const y = (item.y / 100) * canvas.height;
-    const renderedText = item.caps ? item.text.toUpperCase() : item.text;
-    ctx.strokeText(renderedText, x, y);
-    ctx.fillText(renderedText, x, y);
-  });
-
-  canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `meme-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    // Redraw clean so editing continues
-    drawImage();
-  }, 'image/png');
-});
-</script>
 </body>
 </html>
