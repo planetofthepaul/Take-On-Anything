@@ -178,6 +178,26 @@
     touch-action: none;
   }
   .selected > .resize-handle { display: block; }
+  .crop-handle-btn {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #ffde59;
+    color: #0f0f10;
+    border: 2px solid #0f0f10;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 10;
+  }
+  .image-item.selected > .crop-handle-btn { display: flex; }
   .image-item {
     position: absolute;
     pointer-events: auto;
@@ -367,6 +387,9 @@
   }
   .crop-actions button { flex: 1; padding: 14px; font-size: 15px; }
 </style>
+ <script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+
 </head>
 <body>
 <div class="app">
@@ -458,14 +481,17 @@ let nextId = 1;
 
 // Background styles: cycle through these. Each defines text bg + text color + stroke
 const BG_STYLES = [
-  { name: '▢',  bg: null,      color: '#fff', stroke: '#000', strokeOn: true  }, // default: white text, black outline
-  { name: '⬜', bg: '#fff',    color: '#000', stroke: null,   strokeOn: false }, // white box, black text
-  { name: '⬛', bg: '#000',    color: '#fff', stroke: null,   strokeOn: false }, // black box, white text
-  { name: '🟨', bg: '#ffde59', color: '#000', stroke: null,   strokeOn: false }, // yellow box, black text
+  { name: '▢',  bg: null,      color: '#fff', stroke: '#000', strokeOn: true  },
+  { name: 'Tw', bg: null,      color: '#fff', stroke: null,   strokeOn: false },
+  { name: 'Tb', bg: null,      color: '#000', stroke: null,   strokeOn: false },
+  { name: '⬜', bg: '#fff',    color: '#000', stroke: null,   strokeOn: false },
+  { name: '⬛', bg: '#000',    color: '#fff', stroke: null,   strokeOn: false },
+  { name: '🟨', bg: '#ffde59', color: '#000', stroke: null,   strokeOn: false },
 ];
 
 // Fonts available — name shown on button, fontFamily used for both CSS and canvas
 const FONTS = [
+  { name: 'Plain',   family: '-apple-system, "Helvetica Neue", Arial, sans-serif', weight: '400', stroke: 0.06 },
   { name: 'Impact',  family: 'Impact, "Arial Black", sans-serif',         weight: 'bold',   stroke: 0.12 },
   { name: 'Serif',   family: 'Georgia, "Times New Roman", serif',          weight: 'bold',   stroke: 0.08 },
   { name: 'Sans',    family: '-apple-system, "Helvetica Neue", Arial, sans-serif', weight: '400', stroke: 0.06 },
@@ -488,7 +514,7 @@ fileInput.addEventListener('change', (e) => {
       img = newImg;
       drawImage();
       empty.style.display = 'none';
-      canvasWrap.style.display = 'block';
+      canvasWrap.style.display = 'flex';
       downloadBtn.disabled = false;
       // Reflow existing items after canvas size change
       texts.forEach(t => positionText(t.el, t));
@@ -500,28 +526,28 @@ fileInput.addEventListener('change', (e) => {
   fileInput.value = '';
 });
 
-// Overlay image upload → open crop modal
+// Overlay image upload — adds directly, no crop step
 overlayInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   if (!img) { flashEmpty(); return; }
   const reader = new FileReader();
   reader.onload = (ev) => {
-    openCropModal(ev.target.result);
+    const newImg = new Image();
+    newImg.onload = () => addImage(newImg);
+    newImg.src = ev.target.result;
   };
   reader.readAsDataURL(file);
   overlayInput.value = '';
 });
 
 // ---------- CROP MODAL ----------
-let cropState = null; // { img, naturalW, naturalH, box: {x,y,w,h in displayed px} }
+let cropState = null; // { img, naturalW, naturalH, box, targetId|null }
 
-function openCropModal(dataUrl) {
+function openCropModal(dataUrl, targetId = null) {
   const cropImage = document.getElementById('cropImage');
   cropImage.onload = () => {
-    // Initialize crop box to ~80% centered
     const wrap = document.getElementById('cropImageWrap');
-    // Force layout: image is now visible, get its rendered size
     requestAnimationFrame(() => {
       const rect = cropImage.getBoundingClientRect();
       wrap.style.width = rect.width + 'px';
@@ -533,6 +559,7 @@ function openCropModal(dataUrl) {
         naturalH: cropImage.naturalHeight,
         displayW: rect.width,
         displayH: rect.height,
+        targetId,
         box: {
           x: rect.width * inset,
           y: rect.height * inset,
@@ -563,7 +590,6 @@ function cancelCrop() {
 
 function applyCrop() {
   if (!cropState) return;
-  // Scale displayed-pixel crop to natural-image pixels
   const sx = cropState.naturalW / cropState.displayW;
   const sy = cropState.naturalH / cropState.displayH;
   const cx = Math.round(cropState.box.x * sx);
@@ -571,7 +597,6 @@ function applyCrop() {
   const cw = Math.round(cropState.box.w * sx);
   const ch = Math.round(cropState.box.h * sy);
 
-  // Render cropped region to an offscreen canvas, then back to an Image
   const off = document.createElement('canvas');
   off.width = cw;
   off.height = ch;
@@ -579,8 +604,22 @@ function applyCrop() {
   octx.drawImage(cropState.img, cx, cy, cw, ch, 0, 0, cw, ch);
 
   const newImg = new Image();
+  const targetId = cropState.targetId;
   newImg.onload = () => {
-    addImage(newImg);
+    if (targetId !== null) {
+      // Replace the existing image's source and update aspect
+      const item = images.find(i => i.id === targetId);
+      if (item) {
+        item.img = newImg;
+        item.aspect = newImg.naturalWidth / newImg.naturalHeight;
+        // Update the rendered <img> src and recalc dimensions
+        const imgTag = item.el.querySelector('img');
+        if (imgTag) imgTag.src = newImg.src;
+        positionImage(item.el, item);
+      }
+    } else {
+      addImage(newImg);
+    }
     document.getElementById('cropModal').classList.remove('visible');
     cropState = null;
   };
@@ -728,15 +767,21 @@ function fitCanvasInner() {
   const inner = document.getElementById('canvasInner');
   const stage = document.getElementById('stage');
   const stageRect = stage.getBoundingClientRect();
-  // Leave a small margin so it doesn't touch edges
   const availW = stageRect.width - 24;
   const availH = stageRect.height - 24;
   const aspect = canvas.width / canvas.height;
-  let w = availW;
+
+  // Don't display larger than the canvas's actual pixel size
+  let w = Math.min(availW, canvas.width);
   let h = w / aspect;
   if (h > availH) {
-    h = availH;
+    h = Math.min(availH, canvas.height);
     w = h * aspect;
+  }
+  // Also clamp width again in case h-cap pushed w over canvas.width
+  if (w > canvas.width) {
+    w = canvas.width;
+    h = w / aspect;
   }
   inner.style.width = w + 'px';
   inner.style.height = h + 'px';
@@ -931,7 +976,7 @@ function renderImage(item) {
     e.stopPropagation();
     selectItem(item.id);
   });
-  // Delete handle
+  // Delete handle (top right)
   const del = document.createElement('div');
   del.className = 'delete-handle';
   del.textContent = '✕';
@@ -942,7 +987,18 @@ function renderImage(item) {
   del.addEventListener('mousedown', (e) => e.stopPropagation());
   del.addEventListener('touchstart', (e) => e.stopPropagation());
   el.appendChild(del);
-  // Resize handle
+  // Crop button (top left)
+  const cropBtn = document.createElement('div');
+  cropBtn.className = 'crop-handle-btn';
+  cropBtn.textContent = '✂';
+  cropBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openCropModal(item.img.src, item.id);
+  });
+  cropBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+  cropBtn.addEventListener('touchstart', (e) => e.stopPropagation());
+  el.appendChild(cropBtn);
+  // Resize handle (bottom right)
   const resize = document.createElement('div');
   resize.className = 'resize-handle';
   attachResize(resize, item);
@@ -1212,16 +1268,34 @@ downloadBtn.addEventListener('click', () => {
     ctx.closePath();
   }
 
-  canvas.toBlob((blob) => {
+  canvas.toBlob(async (blob) => {
+    const filename = `meme-${Date.now()}.png`;
+    const file = new File([blob], filename, { type: 'image/png' });
+
+    // On iOS, this brings up the share sheet with "Save Image" → camera roll
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        drawImage();
+        return;
+      } catch (err) {
+        // User cancelled or share failed — fall through to download
+        if (err.name === 'AbortError') {
+          drawImage();
+          return;
+        }
+      }
+    }
+
+    // Fallback: regular download (desktop, or share unsupported)
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `meme-${Date.now()}.png`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    // Redraw clean so editing continues
     drawImage();
   }, 'image/png');
 });
