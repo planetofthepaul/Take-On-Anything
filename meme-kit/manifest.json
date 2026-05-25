@@ -1,28 +1,28 @@
 {
-  "name": "memekit",
-  "short_name": "memekit",
+  "name": "memehole",
+  "short_name": "memehole",
   "description": "Make memes fast",
-  "start_url": "/meme-kit/",
-  "scope": "/meme-kit/",
+  "start_url": "/memehole/",
+  "scope": "/memehole/",
   "display": "standalone",
   "background_color": "#0f0f10",
   "theme_color": "#0f0f10",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/meme-kit/icon-192.png",
+      "src": "/memehole/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/meme-kit/icon-512.png",
+      "src": "/memehole/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/meme-kit/icon-512-maskable.png",
+      "src": "/memehole/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
