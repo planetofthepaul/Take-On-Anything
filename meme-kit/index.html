@@ -24,8 +24,12 @@
   let _removeBgPromise = null;
   window.loadBgRemover = function() {
     if (!_removeBgPromise) {
-      _removeBgPromise = import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs')
-        .then(mod => mod.removeBackground);
+      _removeBgPromise = import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm')
+        .then(mod => mod.removeBackground)
+        .catch(err => {
+          _removeBgPromise = null; // allow retry on next click
+          throw err;
+        });
     }
     return _removeBgPromise;
   };
@@ -39,6 +43,7 @@
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
+    touch-action: manipulation; /* disables iOS double-tap-to-zoom delay */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: #0f0f10;
     color: #f4f4f5;
@@ -280,7 +285,7 @@
     color: #f4f4f5;
     padding: 10px 12px;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 16px; /* 16px+ prevents iOS auto-zoom on focus */
     font-family: inherit;
     outline: none;
     min-width: 0;
@@ -344,7 +349,8 @@
     header { padding: 8px 14px; }
     h1 { font-size: 15px; }
     .toolbar { padding: 8px; gap: 6px; }
-    button, .input { padding: 8px 10px; font-size: 13px; }
+    button { padding: 8px 10px; font-size: 13px; }
+    .input { padding: 8px 10px; font-size: 16px; } /* keep 16px to prevent iOS zoom */
   }
 
   /* Crop modal */
@@ -548,6 +554,19 @@
 </div>
 
 <script>
+// Prevent accidental zoom on iOS Safari
+// (iOS ignores user-scalable=no in the viewport meta, so we block gestures here)
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('gesturechange', (e) => e.preventDefault());
+document.addEventListener('gestureend', (e) => e.preventDefault());
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (e) => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const canvasWrap = document.getElementById('canvasWrap');
@@ -883,7 +902,8 @@ async function removeImageBackground(item) {
     });
   } catch (err) {
     console.error('background removal failed', err);
-    alert('background removal failed — check your connection and try again');
+    const detail = (err && err.message) ? err.message : String(err);
+    alert('background removal failed:\n\n' + detail + '\n\ncheck your connection and try again');
   } finally {
     hideBgOverlay();
   }
