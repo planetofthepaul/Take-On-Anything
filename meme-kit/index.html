@@ -1303,9 +1303,9 @@ function addText() {
     x: 50,
     y: texts.length === 0 ? 12 : (texts.length === 1 ? 88 : 50),
     size: 8,
-    caps: true,
+    caps: false,
     fontIdx: 0,
-    bgIdx: 0,
+    bgIdx: 1, // plain white text by default; ▢ button cycles to meme style + others
   };
   texts.push(item);
   renderText(item);
