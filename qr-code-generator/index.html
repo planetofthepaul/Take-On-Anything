@@ -70,10 +70,9 @@ textarea{min-height:90px;resize:vertical;line-height:1.5}
 .field{display:none}.field.on{display:block}
 
 /* customize */
-.custom{border-top:1px solid var(--border);margin-top:20px;padding-top:8px}
-.custom summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--text2);padding:8px 0;list-style:none}
-.custom summary::-webkit-details-marker{display:none}
-.custom summary:before{content:"⚙ ";}
+.custom{border-top:1px solid var(--border);margin-top:20px;padding-top:16px}
+.custom-title{font-size:13px;font-weight:800;color:var(--text2);margin-bottom:4px}
+.custom-title:before{content:"⚙ ";}
 .colors{display:flex;gap:14px;flex-wrap:wrap}
 .colorpick{display:flex;align-items:center;gap:8px}
 .colorpick input[type=color]{width:38px;height:34px;padding:0;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:none}
@@ -167,7 +166,7 @@ textarea{min-height:90px;resize:vertical;line-height:1.5}
     </div>
     <!-- VCARD -->
     <div class="field" data-f="vcard">
-      <div class="row"><div><label>First name</label><input type="text" id="f_vc_first" placeholder="Dick"></div><div><label>Last name</label><input type="text" id="f_vc_last" placeholder="Hertz"></div></div>
+      <div class="row"><div><label>First name</label><input type="text" id="f_vc_first" placeholder="Paul"></div><div><label>Last name</label><input type="text" id="f_vc_last" placeholder="Staples"></div></div>
       <label>Phone</label><input type="tel" id="f_vc_phone" placeholder="+1 555 123 4567">
       <label>Email</label><input type="email" id="f_vc_email" placeholder="you@example.com">
       <label>Organization</label><input type="text" id="f_vc_org" placeholder="Company (optional)">
@@ -189,8 +188,8 @@ textarea{min-height:90px;resize:vertical;line-height:1.5}
       <label>Message</label><textarea id="f_sms_body" placeholder="pre-filled text message"></textarea>
     </div>
 
-    <details class="custom">
-      <summary>Customize colors &amp; logo</summary>
+    <div class="custom">
+      <div class="custom-title">Customize colors &amp; logo</div>
       <div class="colors" style="margin-top:12px">
         <div class="colorpick"><input type="color" id="c_fg" value="#2a2a2a"><span>Code color</span></div>
         <div class="colorpick"><input type="color" id="c_bg" value="#ffffff"><span>Background</span></div>
@@ -200,7 +199,7 @@ textarea{min-height:90px;resize:vertical;line-height:1.5}
       <input type="file" id="c_logo" accept="image/*" style="display:none">
       <button class="filebtn" id="c_logo_clear" type="button" style="margin-left:6px;display:none">Remove logo</button>
       <div class="logohint">When you add a logo, error correction is automatically set to <b>High</b> so the code still scans. Keep contrast strong (dark code on light background) for best scan reliability.</div>
-    </details>
+    </div>
   </div>
 
   <!-- RIGHT: preview -->
