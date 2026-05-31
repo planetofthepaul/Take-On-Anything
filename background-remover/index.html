@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Background Remover — Erase Image Backgrounds Online | Take On Anything</title>
+<meta name="description" content="Remove the background from any image free. Drop in a photo and get a transparent PNG in seconds. Runs entirely in your browser — no signup, no watermark, nothing uploaded.">
+<link rel="canonical" href="https://takeonanything.com/background-remover/">
+<meta property="og:title" content="Free Background Remover — Erase Image Backgrounds Online | Take On Anything">
+<meta property="og:description" content="Remove the background from any image free. Get a transparent PNG in seconds. Runs in your browser — no signup, no watermark, nothing uploaded.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://takeonanything.com/background-remover/">
+
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"Is this background remover free?","acceptedAnswer":{"@type":"Answer","text":"Yes, completely free with no signup and no watermark. You can remove backgrounds from as many images as you like and download transparent PNGs at no cost."}},
+    {"@type":"Question","name":"Are my images uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire process runs inside your own browser. Your image never leaves your device and is never uploaded anywhere, so it stays completely private."}},
+    {"@type":"Question","name":"What file format do I get back?","acceptedAnswer":{"@type":"Answer","text":"You get a PNG with a transparent background, which you can place on any color or design. You can also preview it against a white or checkerboard background before downloading."}},
+    {"@type":"Question","name":"What kind of images work best?","acceptedAnswer":{"@type":"Answer","text":"Photos with a clear subject — a person, product, animal, or object — against a reasonably distinct background give the cleanest results. Very fine details like loose strands of hair can be harder to cut out perfectly."}}
+  ]
+}
+</script>
+
+<style>
+:root{--bg:#fefcf9;--card:#fff;--text:#2a2a2a;--text2:#666;--text3:#999;--accent:#ff5252;--ah:#e03030;--as:#fff0f0;--border:#eee;--r:10px;--max:900px}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}a:hover{color:var(--ah)}
+button,input{font:inherit}
+.w{max-width:var(--max);width:100%;margin:0 auto;padding:0 20px}
+.hdr{padding:20px 0 0;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:800;font-size:15px;color:var(--accent);letter-spacing:-.3px}.logo span{color:var(--text3);font-weight:400}
+.nav{display:flex;gap:16px;flex-wrap:wrap}.nav a{font-size:14px;font-weight:600;color:var(--text2)}.nav a:hover{color:var(--text)}
+.hero{padding:20px 0 12px}.hero h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.2}.hero p{font-size:16px;color:var(--text2);margin-top:8px;line-height:1.6;max-width:700px}
+
+.tool{margin:12px 0 24px}
+.drop{border:2px dashed var(--border);border-radius:var(--r);background:var(--card);padding:48px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop.drag{border-color:var(--accent);background:var(--as)}
+.drop .big{font-size:34px;margin-bottom:10px}
+.drop .t1{font-size:17px;font-weight:800}
+.drop .t2{font-size:14px;color:var(--text3);margin-top:6px}
+
+.stage{display:none;margin-top:8px}
+.stage.on{display:block}
+.canvases{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.canvases{grid-template-columns:1fr}}
+.cv{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
+.cv .lab{font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.imgwrap{min-height:200px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.imgwrap img{max-width:100%;max-height:360px;border-radius:6px}
+/* transparency checkerboard */
+.checker{background-image:linear-gradient(45deg,#e9e9e9 25%,transparent 25%),linear-gradient(-45deg,#e9e9e9 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e9e9e9 75%),linear-gradient(-45deg,transparent 75%,#e9e9e9 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+
+.status{margin:14px 0;padding:14px 16px;border-radius:var(--r);background:var(--as);border:1px solid #ffd9d9;font-size:14px;font-weight:600;color:var(--text2);display:none}
+.status.on{display:block}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.btn{appearance:none;border:1px solid var(--border);background:var(--card);color:var(--text2);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .12s}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--as)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--ah);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.bgtoggle{display:flex;gap:6px;margin-left:auto}
+.bgtoggle button{border:1px solid var(--border);background:var(--card);width:34px;height:34px;border-radius:7px;cursor:pointer;padding:0}
+.bgtoggle button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--as)}
+
+.seo{padding:28px 0;border-top:1px solid var(--border)}
+.seo h2{font-size:21px;font-weight:800;margin:24px 0 8px;letter-spacing:-.3px}
+.seo p{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:12px}
+.seo ul{margin:0 0 14px 20px}.seo li{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:5px}
+.seo strong{color:var(--text)}
+
+.related{padding:4px 0 28px}.related h2{font-size:16px;font-weight:800;margin-bottom:12px;color:var(--text2)}
+.rl{display:flex;flex-wrap:wrap;gap:8px}
+.rla{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);font-size:14px;font-weight:600;color:var(--text);transition:border-color .12s,background .12s}
+.rla:hover{border-color:var(--accent);background:var(--as);color:var(--text)}
+
+.ft{padding:20px 0 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text3)}
+.ft a{color:var(--text3);font-size:13px}.ft a:hover{color:var(--text2)}.ftl{display:flex;gap:16px;flex-wrap:wrap}.ftc{font-size:11px}
+@media(max-width:520px){.hero h1{font-size:24px}}
+</style>
+</head>
+<body><div class="w">
+
+<header class="hdr">
+<a href="/" class="logo">takeonanything<span>.com</span></a>
+<nav class="nav"><a href="/">Home</a><a href="/emoji/">Emoji</a><a href="/symbols/">Symbols</a><a href="/image-compressor/">Image Compressor</a></nav>
+</header>
+
+<section class="hero">
+<h1>Free Background Remover</h1>
+<p>Drop in a photo and get a clean, transparent PNG in seconds. Everything happens in your browser — your image is never uploaded, there's no signup, and no watermark is added.</p>
+</section>
+
+<section class="tool">
+  <div class="drop" id="drop">
+    <div class="big">🖼️</div>
+    <div class="t1">Drop an image here, or click to choose</div>
+    <div class="t2">JPG, PNG, or WebP — your photo stays on your device</div>
+    <input type="file" id="file" accept="image/*" style="display:none">
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="stage" id="stage">
+    <div class="canvases">
+      <div class="cv">
+        <div class="lab">Original</div>
+        <div class="imgwrap"><img id="origImg" alt="original"></div>
+      </div>
+      <div class="cv">
+        <div class="lab">Background removed</div>
+        <div class="imgwrap checker" id="resultWrap"><img id="resultImg" alt="result"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="dlBtn" disabled>Download PNG</button>
+      <button class="btn" id="newBtn">Try another image</button>
+      <div class="bgtoggle" title="Preview background">
+        <button id="bgChecker" class="checker on" title="Transparent"></button>
+        <button id="bgWhite" style="background:#fff" title="White"></button>
+        <button id="bgDark" style="background:#2a2a2a" title="Dark"></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="seo">
+<h2>How to remove a background</h2>
+<p>Drop a photo into the box above or click to choose one from your device. The tool finds the main subject, erases everything behind it, and gives you a transparent <strong>PNG</strong> you can download and place on any background. The first run loads the processing model into your browser, which takes a few seconds; after that, each image is quick.</p>
+
+<h2>Your images stay private</h2>
+<p>Unlike most background removers, this one does all the work inside your own browser. Your photo is <strong>never uploaded</strong> to a server and never leaves your device, which makes it a safe choice for product shots, ID photos, personal pictures, or anything you'd rather not send to a third party.</p>
+
+<h2>What you can use it for</h2>
+<ul>
+<li><strong>Product photos</strong> — drop your item onto a clean white or branded background for a shop listing.</li>
+<li><strong>Profile pictures</strong> — cut yourself out for an avatar, badge, or team page.</li>
+<li><strong>Stickers and memes</strong> — make a transparent cut-out to drop into other images.</li>
+<li><strong>Presentations and design</strong> — place a subject onto slides, posters, or thumbnails without a boxy background.</li>
+</ul>
+
+<h2>Tips for the cleanest cut-out</h2>
+<ul>
+<li>Use a photo where the subject stands out clearly from what's behind it.</li>
+<li>Good, even lighting helps the edges come out sharp.</li>
+<li>Very fine detail like flyaway hair or fur can be tricky — simpler outlines cut out best.</li>
+<li>Preview the result against white and dark backgrounds (the buttons above) to check the edges before downloading.</li>
+</ul>
+
+<h2>Is it really free?</h2>
+<p>Yes. There's no signup, no watermark, and no limit on how many images you can process. Because everything runs in your browser, there are no per-image costs and nothing to pay.</p>
+</section>
+
+<section class="related">
+<h2>More free tools</h2>
+<div class="rl">
+<a class="rla" href="/image-compressor/">🗜️ Image Compressor</a>
+<a class="rla" href="/qr-code-generator/">▦ QR Code Generator</a>
+<a class="rla" href="/meme-kit/">🎭 Meme Maker</a>
+<a class="rla" href="/emoji/">😀 Emoji Keyboard</a>
+<a class="rla" href="/">→ All tools</a>
+</div>
+</section>
+
+<footer class="ft">
+<div class="ftl"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div>
+<div class="ftc">© 2026 takeonanything.com</div>
+</footer>
+
+</div>
+
+<script type="module">
+import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm';
+
+const drop=document.getElementById('drop');
+const file=document.getElementById('file');
+const status=document.getElementById('status');
+const stage=document.getElementById('stage');
+const origImg=document.getElementById('origImg');
+const resultImg=document.getElementById('resultImg');
+const resultWrap=document.getElementById('resultWrap');
+const dlBtn=document.getElementById('dlBtn');
+const newBtn=document.getElementById('newBtn');
+let resultURL=null;
+
+function setStatus(html, spin){
+  if(!html){ status.classList.remove('on'); status.innerHTML=''; return; }
+  status.classList.add('on');
+  status.innerHTML=(spin?'<span class="spinner"></span>':'')+html;
+}
+
+function handleFile(f){
+  if(!f || !f.type.startsWith('image/')){ setStatus('Please choose an image file (JPG, PNG, or WebP).',false); return; }
+  drop.style.display='none';
+  stage.classList.add('on');
+  origImg.src=URL.createObjectURL(f);
+  resultImg.removeAttribute('src');
+  dlBtn.disabled=true;
+  setStatus('Loading the model and removing the background… the first run takes a few seconds.',true);
+  if(window.plausible) plausible('bgremove_start');
+
+  removeBackground(f).then(blob=>{
+    if(resultURL) URL.revokeObjectURL(resultURL);
+    resultURL=URL.createObjectURL(blob);
+    resultImg.src=resultURL;
+    dlBtn.disabled=false;
+    setStatus('Done. Preview it against different backgrounds, then download your transparent PNG.',false);
+    if(window.plausible) plausible('bgremove_done');
+  }).catch(err=>{
+    console.error(err);
+    setStatus('Something went wrong processing that image. Try a different photo, or refresh and try again.',false);
+  });
+}
+
+drop.onclick=()=>file.click();
+file.onchange=e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); };
+drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('drag'); };
+drop.ondragleave=()=>drop.classList.remove('drag');
+drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('drag'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
+
+dlBtn.onclick=()=>{
+  if(!resultURL) return;
+  const a=document.createElement('a'); a.href=resultURL; a.download='background-removed.png';
+  document.body.appendChild(a); a.click(); a.remove();
+  if(window.plausible) plausible('bgremove_download');
+};
+newBtn.onclick=()=>{
+  stage.classList.remove('on'); drop.style.display='block';
+  file.value=''; setStatus(null); dlBtn.disabled=true;
+  if(resultURL){ URL.revokeObjectURL(resultURL); resultURL=null; }
+};
+
+// background preview toggle
+const bgC=document.getElementById('bgChecker'), bgW=document.getElementById('bgWhite'), bgD=document.getElementById('bgDark');
+function pick(btn,fn){ [bgC,bgW,bgD].forEach(b=>b.classList.remove('on')); btn.classList.add('on'); fn(); }
+bgC.onclick=()=>pick(bgC,()=>{ resultWrap.classList.add('checker'); resultWrap.style.background=''; });
+bgW.onclick=()=>pick(bgW,()=>{ resultWrap.classList.remove('checker'); resultWrap.style.background='#fff'; });
+bgD.onclick=()=>pick(bgD,()=>{ resultWrap.classList.remove('checker'); resultWrap.style.background='#2a2a2a'; });
+</script>
+</body>
+</html>
