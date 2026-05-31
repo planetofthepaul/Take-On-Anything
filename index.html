@@ -3,442 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Free QR Code Generator — URL, WiFi, vCard, Logo | Take On Anything</title>
-<meta name="description" content="Free QR code generator. Make custom QR codes for a URL, WiFi network, contact card, email, phone, or text. Add a logo, pick colors, download as PNG or SVG. No watermark, no signup.">
-<link rel="canonical" href="https://takeonanything.com/qr-code-generator/">
-<meta property="og:title" content="Free QR Code Generator — URL, WiFi, vCard, Logo | Take On Anything">
-<meta property="og:description" content="Make custom QR codes for a URL, WiFi, contact card, email, phone, or text. Add a logo, pick colors, download PNG or SVG. No watermark, no signup.">
+<title>Take On Anything — Free Online Tools</title>
+<meta name="description" content="Free online tools — emoji keyboard, symbol copy paste, word counter, code editor, notepad, image compressor, meme maker, and more. No ads, no login.">
+<link rel="canonical" href="https://takeonanything.com/">
+<meta property="og:title" content="Take On Anything — Free Online Tools">
+<meta property="og:description" content="Free online tools — emoji keyboard, symbol copy paste, word counter, code editor, notepad, and more. No ads, no login.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://takeonanything.com/qr-code-generator/">
-
-<!-- Privacy-friendly analytics by Plausible -->
-<script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
-
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta property="og:url" content="https://takeonanything.com/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<!-- QR engine + SVG support -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-
-<!-- FAQ structured data for rich results -->
-<script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"FAQPage",
-  "mainEntity":[
-    {"@type":"Question","name":"Are these QR codes free and do they expire?","acceptedAnswer":{"@type":"Answer","text":"Yes, completely free with no signup. The QR codes are static, which means the data is encoded directly into the pattern. They never expire and will keep working forever, with no scan limits."}},
-    {"@type":"Question","name":"Can I add a logo to my QR code?","acceptedAnswer":{"@type":"Answer","text":"Yes. Upload an image and it is placed in the center. The error-correction level is automatically raised to High so the code still scans reliably with the logo covering part of it."}},
-    {"@type":"Question","name":"How do I make a WiFi QR code?","acceptedAnswer":{"@type":"Answer","text":"Choose the WiFi type, enter your network name and password, select the security type, and the QR code is generated. Anyone who scans it joins your network without typing the password."}},
-    {"@type":"Question","name":"Can I download the QR code as an SVG?","acceptedAnswer":{"@type":"Answer","text":"Yes. You can download as PNG for everyday use or as SVG, a vector format that stays sharp at any size, which is ideal for print and large signage."}}
-  ]
-}
-</script>
-
+<link rel="stylesheet" href="/assets/style.css">
 <style>
-:root{--bg:#fefcf9;--card:#fff;--text:#2a2a2a;--text2:#666;--text3:#999;--accent:#ff5252;--ah:#e03030;--as:#fff0f0;--border:#eee;--r:10px;--max:900px}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-body{min-height:100vh;display:flex;flex-direction:column}
-a{color:var(--accent);text-decoration:none}a:hover{color:var(--ah)}
-button,input,textarea,select{font:inherit}
-.w{max-width:var(--max);width:100%;margin:0 auto;padding:0 20px}
-.hdr{padding:20px 0 0;display:flex;align-items:center;justify-content:space-between}
-.logo{font-weight:800;font-size:15px;color:var(--accent);text-decoration:none;letter-spacing:-.3px}.logo span{color:var(--text3);font-weight:400}
-.nav{display:flex;gap:16px;flex-wrap:wrap}.nav a{font-size:14px;font-weight:600;color:var(--text2)}.nav a:hover{color:var(--text)}
-.hero{padding:20px 0 12px}.hero h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.2}.hero p{font-size:16px;color:var(--text2);margin-top:8px;line-height:1.6;max-width:700px}
-
-/* tool layout */
-.tool{margin:8px 0 24px;display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start}
-@media(max-width:760px){.tool{grid-template-columns:1fr}}
-
-/* type tabs */
-.types{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-.type{appearance:none;border:1px solid var(--border);background:var(--card);color:var(--text2);padding:8px 13px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .12s}
-.type:hover{border-color:var(--accent);color:var(--accent)}
-.type.on{background:var(--accent);border-color:var(--accent);color:#fff}
-
-label{display:block;font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px}
-input[type=text],input[type=password],input[type=url],input[type=email],input[type=tel],textarea,select{
-  width:100%;padding:11px 13px;border:2px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);outline:none;transition:border-color .15s}
-input:focus,textarea:focus,select:focus{border-color:var(--accent)}
-textarea{min-height:90px;resize:vertical;line-height:1.5}
-.row{display:flex;gap:10px}.row>*{flex:1}
-.field{display:none}.field.on{display:block}
-
-/* customize */
-.custom{border-top:1px solid var(--border);margin-top:20px;padding-top:16px}
-.custom-title{font-size:13px;font-weight:800;color:var(--text2);margin-bottom:4px}
-.custom-title:before{content:"⚙ ";}
-.colors{display:flex;gap:14px;flex-wrap:wrap}
-.colorpick{display:flex;align-items:center;gap:8px}
-.colorpick input[type=color]{width:38px;height:34px;padding:0;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:none}
-.colorpick span{font-size:13px;font-weight:600;color:var(--text2)}
-.filebtn{display:inline-block;border:1px solid var(--border);background:var(--card);color:var(--text2);padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
-.filebtn:hover{border-color:var(--accent);color:var(--accent);background:var(--as)}
-.logohint{font-size:12px;color:var(--text3);margin-top:6px;line-height:1.5}
-
-/* preview panel */
-.preview{position:sticky;top:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:center}
-.qrbox{display:inline-block;padding:16px;background:#fff;border-radius:8px;line-height:0}
-#qrcanvas{display:block;width:240px;height:240px;image-rendering:pixelated}
-.dlbtns{display:flex;gap:8px;margin-top:16px}
-.dlbtn{flex:1;appearance:none;border:none;background:var(--accent);color:#fff;padding:11px;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;transition:background .12s}
-.dlbtn:hover{background:var(--ah)}
-.dlbtn.sec{background:var(--card);color:var(--accent);border:1px solid var(--accent)}
-.dlbtn.sec:hover{background:var(--as)}
-.eclevel{font-size:12px;color:var(--text3);margin-top:12px}
-.eclevel b{color:var(--text2)}
-.placeholder{color:var(--text3);font-size:14px;padding:40px 10px}
-
-/* SEO content */
-.seo{padding:28px 0;border-top:1px solid var(--border)}
-.seo h2{font-size:21px;font-weight:800;margin:24px 0 8px;letter-spacing:-.3px}
-.seo h3{font-size:17px;font-weight:800;margin:18px 0 6px}
-.seo p{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:12px}
-.seo ul{margin:0 0 14px 20px}.seo li{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:5px}
-.seo strong{color:var(--text)}
-
-.related{padding:4px 0 28px}.related h2{font-size:16px;font-weight:800;margin-bottom:12px;color:var(--text2)}
-.rl{display:flex;flex-wrap:wrap;gap:8px}
-.rla{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);font-size:14px;font-weight:600;color:var(--text);transition:border-color .12s,background .12s}
-.rla:hover{border-color:var(--accent);background:var(--as);color:var(--text)}
-
-.ft{padding:20px 0 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text3)}
-.ft a{color:var(--text3);font-size:13px}.ft a:hover{color:var(--text2)}.ftl{display:flex;gap:16px;flex-wrap:wrap}.ftc{font-size:11px}
-@media(max-width:520px){.hero h1{font-size:24px}.row{flex-direction:column}}
+/* Homepage-only: wider container + 3-column tool grid on desktop.
+   Scoped to the homepage; does not affect the shared stylesheet or other pages. */
+@media (min-width: 860px) {
+  .site-main { max-width: 960px; }
+  .tools-grid { grid-template-columns: repeat(3, 1fr); }
+}
 </style>
-</head>
-<body><div class="w">
+<script async src="https://plausible.io/js/pa-TdoBNec_xBsFzJ8gr16Dl.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
 
-<header class="hdr">
-<a href="/" class="logo">takeonanything<span>.com</span></a>
-<nav class="nav"><a href="/">Home</a><a href="/emoji/">Emoji</a><a href="/symbols/">Symbols</a><a href="/word-counter/">Word Counter</a></nav>
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="site-logo">takeonanything<span class="dim">.com</span></a>
+  <nav class="site-nav">
+    <a href="/emoji/">Emoji</a>
+    <a href="/symbols/">Symbols</a>
+    <a href="/word-counter/">Word Counter</a>
+    <a href="/editor/">Editor</a>
+    <a href="/about/">About</a>
+  </nav>
 </header>
 
-<section class="hero">
-<h1>Free QR Code Generator</h1>
-<p>Create a custom QR code for a website, WiFi network, contact card, email, phone number, or any text. Add your logo, choose colors, and download a high-resolution PNG or a vector SVG. No watermark, no signup, no expiry.</p>
-</section>
+<main class="site-main">
+  <section class="hero">
+    <h1>Free tools.<br><span class="accent">No ads. No login.</span></h1>
+    <p>Simple online tools that do one thing well. Everything I needed kept being buried under ads and account walls, so I built clean versions and put them here.</p>
+  </section>
 
-<section class="tool">
-  <!-- LEFT: inputs -->
-  <div class="inputs">
-    <div class="types" id="types">
-      <button class="type on" data-type="url">URL</button>
-      <button class="type" data-type="text">Text</button>
-      <button class="type" data-type="wifi">WiFi</button>
-      <button class="type" data-type="vcard">Contact</button>
-      <button class="type" data-type="email">Email</button>
-      <button class="type" data-type="tel">Phone</button>
-      <button class="type" data-type="sms">SMS</button>
-    </div>
+  <section class="tools-grid">
 
-    <!-- URL -->
-    <div class="field on" data-f="url">
-      <label>Website address</label>
-      <input type="url" id="f_url" placeholder="https://example.com" value="https://takeonanything.com">
-    </div>
-    <!-- TEXT -->
-    <div class="field" data-f="text">
-      <label>Text</label>
-      <textarea id="f_text" placeholder="Any text you want to encode..."></textarea>
-    </div>
-    <!-- WIFI -->
-    <div class="field" data-f="wifi">
-      <label>Network name (SSID)</label>
-      <input type="text" id="f_wifi_ssid" placeholder="MyHomeWiFi">
-      <label>Password</label>
-      <input type="text" id="f_wifi_pass" placeholder="network password">
-      <div class="row">
-        <div>
-          <label>Security</label>
-          <select id="f_wifi_enc"><option value="WPA">WPA / WPA2 / WPA3</option><option value="WEP">WEP</option><option value="nopass">No password</option></select>
-        </div>
-        <div>
-          <label>Hidden network</label>
-          <select id="f_wifi_hidden"><option value="false">No</option><option value="true">Yes</option></select>
-        </div>
-      </div>
-    </div>
-    <!-- VCARD -->
-    <div class="field" data-f="vcard">
-      <div class="row"><div><label>First name</label><input type="text" id="f_vc_first" placeholder="Paul"></div><div><label>Last name</label><input type="text" id="f_vc_last" placeholder="Staples"></div></div>
-      <label>Phone</label><input type="tel" id="f_vc_phone" placeholder="+1 555 123 4567">
-      <label>Email</label><input type="email" id="f_vc_email" placeholder="you@example.com">
-      <label>Organization</label><input type="text" id="f_vc_org" placeholder="Company (optional)">
-      <label>Website</label><input type="url" id="f_vc_url" placeholder="https://example.com (optional)">
-    </div>
-    <!-- EMAIL -->
-    <div class="field" data-f="email">
-      <label>Send to</label><input type="email" id="f_em_to" placeholder="you@example.com">
-      <label>Subject</label><input type="text" id="f_em_sub" placeholder="optional subject">
-      <label>Message</label><textarea id="f_em_body" placeholder="optional message"></textarea>
-    </div>
-    <!-- TEL -->
-    <div class="field" data-f="tel">
-      <label>Phone number</label><input type="tel" id="f_tel" placeholder="+1 555 123 4567">
-    </div>
-    <!-- SMS -->
-    <div class="field" data-f="sms">
-      <label>Phone number</label><input type="tel" id="f_sms_num" placeholder="+1 555 123 4567">
-      <label>Message</label><textarea id="f_sms_body" placeholder="pre-filled text message"></textarea>
-    </div>
+    <a href="/emoji/" class="tool-card">
+      <div class="tool-icon">😀</div>
+      <h3>Emoji Copy &amp; Paste</h3>
+      <p>Thousands of emojis organized by category. Click to copy. Browse by holiday, mood, or theme.</p>
+      <span class="tool-tag">Live</span>
+    </a>
 
-    <div class="custom">
-      <div class="custom-title">Customize colors &amp; logo</div>
-      <div class="colors" style="margin-top:12px">
-        <div class="colorpick"><input type="color" id="c_fg" value="#2a2a2a"><span>Code color</span></div>
-        <div class="colorpick"><input type="color" id="c_bg" value="#ffffff"><span>Background</span></div>
-      </div>
-      <label>Center logo (optional)</label>
-      <label class="filebtn" for="c_logo">Upload logo</label>
-      <input type="file" id="c_logo" accept="image/*" style="display:none">
-      <button class="filebtn" id="c_logo_clear" type="button" style="margin-left:6px;display:none">Remove logo</button>
-      <div class="logohint">When you add a logo, error correction is automatically set to <b>High</b> so the code still scans. Keep contrast strong (dark code on light background) for best scan reliability.</div>
-    </div>
+    <a href="/qr-code-generator/" class="tool-card">
+      <div class="tool-icon">▦</div>
+      <h3>QR Code Generator</h3>
+      <p>Make a QR code for a URL, WiFi network, contact card, email, or text. Add a logo, pick colors, download PNG or SVG.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/symbols/" class="tool-card">
+      <div class="tool-icon">™</div>
+      <h3>Symbol Copy &amp; Paste</h3>
+      <p>Trademark, copyright, arrows, math, currency, Greek letters, and more. Click to copy.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/word-counter/" class="tool-card">
+      <div class="tool-icon">📝</div>
+      <h3>Word &amp; Character Counter</h3>
+      <p>Paste text, get instant counts — words, characters, sentences, paragraphs, reading time.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/image-compressor/" class="tool-card">
+      <div class="tool-icon">📷</div>
+      <h3>Image Compressor</h3>
+      <p>Reduce JPG, PNG, and WebP file sizes. Upload multiple images, adjust quality, download smaller versions.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/notepad/" class="tool-card">
+      <div class="tool-icon">🗒️</div>
+      <h3>Online Notepad</h3>
+      <p>Browser-based notepad with auto-save. Lined paper style with undo, copy, and download.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/editor/" class="tool-card">
+      <div class="tool-icon">💻</div>
+      <h3>Code Editor &amp; Preview</h3>
+      <p>Write HTML, CSS, and JavaScript with instant live preview. Syntax highlighting, shareable links.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/meme-kit/" class="tool-card">
+      <div class="tool-icon">🎭</div>
+      <h3>MemeHole</h3>
+      <p>Drop in a photo, add captions, save the meme. Many text options, background removal, mobile-friendly. Save as a shortcut to your phone home screen for easy access. </p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/StoryTrainer/" class="tool-card">
+      <div class="tool-icon">📖</div>
+      <h3>Story Trainer</h3>
+      <p>A guided walkthrough for building stories that work — logline, emotional story, and the seven structural beats.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+    <a href="/substack-notes-exporter/" class="tool-card">
+      <div class="tool-icon">📤</div>
+      <h3>Substack Notes Exporter</h3>
+      <p>Archive any public Substack profile's Notes as a CSV. Runs entirely in your browser — no server, no signup.</p>
+      <span class="tool-tag">Live</span>
+    </a>
+
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/about/">About</a>
+    <a href="/privacy/">Privacy</a>
+    <a href="/terms/">Terms</a>
   </div>
-
-  <!-- RIGHT: preview -->
-  <div class="preview">
-    <div class="qrbox"><canvas id="qrcanvas" width="240" height="240"></canvas></div>
-    <div class="dlbtns">
-      <button class="dlbtn" id="dl_png" type="button">PNG</button>
-      <button class="dlbtn sec" id="dl_svg" type="button">SVG</button>
-    </div>
-    <div class="eclevel">Error correction: <b id="ecdisplay">Medium</b></div>
-  </div>
-</section>
-
-<section class="seo">
-<h2>How to make a QR code</h2>
-<p>Pick what you want the QR code to do using the tabs above, fill in the details, and the QR code updates instantly in the preview. When it looks right, download it as a <strong>PNG</strong> for screens and everyday printing, or as an <strong>SVG</strong> for signage and professional print work. There is no account to create, nothing to pay, and no watermark added to your image.</p>
-
-<h2>What a QR code actually is</h2>
-<p>A QR code (short for "Quick Response" code) is a square grid of black and white modules that stores text. When you enter a website, a WiFi password, or a phone number, that information is converted into a stream of bits, wrapped in extra <strong>error-correction</strong> data, and laid out into the grid following a fixed pattern. The three large squares in the corners let a camera find the code and figure out its orientation, and the rest of the grid holds your data. A phone camera reads the pattern back into the original text in a fraction of a second.</p>
-<p>Because the data is stored directly in the pattern, the codes this tool makes are <strong>static</strong>: they never expire, they have no scan limit, and they keep working with no connection to our site. What you download is the finished, self-contained code.</p>
-
-<h2>QR code types you can create</h2>
-<ul>
-<li><strong>URL QR code</strong> — opens a website or link when scanned. The most common type, used on flyers, packaging, business cards, and posters.</li>
-<li><strong>WiFi QR code</strong> — lets guests join your network by scanning, with no need to read out or type a long password. Great for homes, cafés, offices, and rentals.</li>
-<li><strong>Contact (vCard) QR code</strong> — saves your name, phone, email, and company straight into someone's contacts.</li>
-<li><strong>Email QR code</strong> — opens a new email with the address, subject, and message already filled in.</li>
-<li><strong>Phone QR code</strong> — starts a call to a number when scanned.</li>
-<li><strong>SMS QR code</strong> — opens a text message to a number with the message pre-written.</li>
-<li><strong>Plain text QR code</strong> — shows any text you like, useful for notes, codes, instructions, or serial numbers.</li>
-</ul>
-
-<h2>Adding a logo without breaking the code</h2>
-<p>QR codes can survive having part of them covered, thanks to the error-correction data built into every code. There are four levels — Low, Medium, Quartile, and High — recovering roughly 7%, 15%, 25%, and 30% of the code respectively. When you upload a logo, this tool automatically switches to the <strong>High</strong> level so the redundancy covers the area the logo sits on, and the code keeps scanning. For the most reliable results, keep your logo to the center, avoid covering the three corner squares, and use a dark code color on a light background.</p>
-
-<h2>PNG or SVG — which should I download?</h2>
-<p>Choose <strong>PNG</strong> for websites, social media, slides, and standard printing — it works everywhere. Choose <strong>SVG</strong> when you need the code to stay perfectly sharp at large sizes, such as posters, banners, vehicle wraps, or anything sent to a professional printer, because a vector file has no fixed resolution and never looks pixelated.</p>
-
-<h2>Tips for QR codes that always scan</h2>
-<ul>
-<li>Keep strong contrast between the code and its background — dark on light scans best.</li>
-<li>Leave a quiet margin of empty space around the code; don't crowd it with other graphics.</li>
-<li>Print it large enough — a rough rule is a code at least one tenth the distance from which people will scan it.</li>
-<li>Always test the final printed or on-screen code with a couple of different phones before you publish it.</li>
-</ul>
-
-<h2>Is this QR code generator really free?</h2>
-<p>Yes. Every type, the logo and color options, and both PNG and SVG downloads are free with no signup and no watermark. The codes are static and never expire. The whole tool runs in your browser, so the data you type — including WiFi passwords and contact details — stays on your device and is never uploaded.</p>
-</section>
-
-<section class="related">
-<h2>More free tools</h2>
-<div class="rl">
-<a class="rla" href="/emoji/">😀 Emoji Keyboard</a>
-<a class="rla" href="/symbols/">✦ Symbols</a>
-<a class="rla" href="/word-counter/">📝 Word Counter</a>
-<a class="rla" href="/image-compressor/">🗜️ Image Compressor</a>
-<a class="rla" href="/">→ All tools</a>
-</div>
-</section>
-
-<footer class="ft">
-<div class="ftl"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div>
-<div class="ftc">© 2026 takeonanything.com</div>
+  <span class="footer-copy">&copy; 2026 takeonanything.com</span>
 </footer>
 
-</div>
-
-<script>
-(function(){
-  var canvas = document.getElementById('qrcanvas');
-  var ctx = canvas.getContext('2d');
-  var state = { type:'url', fg:'#2a2a2a', bg:'#ffffff', logo:null };
-  var lastModules = null;   // 2D boolean array of current QR
-  var lastCount = 0;
-
-  // ---- build the data string for the current type ----
-  function val(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
-  function esc(s){ return String(s).replace(/([\\;,:"])/g,'\\$1'); } // escape for wifi/vcard
-
-  function buildData(){
-    switch(state.type){
-      case 'url':  return val('f_url');
-      case 'text': return document.getElementById('f_text').value;
-      case 'wifi': {
-        var enc=val('f_wifi_enc'); var ssid=val('f_wifi_ssid'); var pass=val('f_wifi_pass');
-        var hidden=val('f_wifi_hidden');
-        if(!ssid) return '';
-        var p = enc==='nopass' ? '' : 'P:'+esc(pass)+';';
-        return 'WIFI:T:'+enc+';S:'+esc(ssid)+';'+p+(hidden==='true'?'H:true;':'')+';';
-      }
-      case 'vcard': {
-        var f=val('f_vc_first'), l=val('f_vc_last');
-        if(!f && !l && !val('f_vc_phone')) return '';
-        var lines=['BEGIN:VCARD','VERSION:3.0','N:'+l+';'+f,'FN:'+(f+' '+l).trim()];
-        if(val('f_vc_org')) lines.push('ORG:'+val('f_vc_org'));
-        if(val('f_vc_phone')) lines.push('TEL:'+val('f_vc_phone'));
-        if(val('f_vc_email')) lines.push('EMAIL:'+val('f_vc_email'));
-        if(val('f_vc_url')) lines.push('URL:'+val('f_vc_url'));
-        lines.push('END:VCARD');
-        return lines.join('\n');
-      }
-      case 'email': {
-        var to=val('f_em_to'); if(!to) return '';
-        var q=[]; if(val('f_em_sub'))q.push('subject='+encodeURIComponent(val('f_em_sub')));
-        if(val('f_em_body'))q.push('body='+encodeURIComponent(val('f_em_body')));
-        return 'mailto:'+to+(q.length?'?'+q.join('&'):'');
-      }
-      case 'tel': return val('f_tel')?'tel:'+val('f_tel'):'';
-      case 'sms': {
-        var n=val('f_sms_num'); if(!n) return '';
-        var b=document.getElementById('f_sms_body').value;
-        return 'SMSTO:'+n+(b?':'+b:'');
-      }
-    }
-    return '';
-  }
-
-  // ---- render QR to canvas ----
-  function render(){
-    if(typeof qrcode==='undefined'){ return; }  // lib not loaded yet
-    var data = buildData();
-    var ecName = state.logo ? 'High' : 'Medium';
-    document.getElementById('ecdisplay').textContent = ecName;
-    var ecLevel = state.logo ? 'H' : 'M';
-
-    if(!data){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle='#999'; ctx.font='14px Nunito,sans-serif'; ctx.textAlign='center';
-      ctx.fillText('Enter details to', canvas.width/2, canvas.height/2-8);
-      ctx.fillText('generate a QR code', canvas.width/2, canvas.height/2+12);
-      lastModules=null; return;
-    }
-
-    var qr = qrcode(0, ecLevel);       // type 0 = auto-fit smallest version
-    qr.addData(data);
-    qr.make();
-    var count = qr.getModuleCount();
-    lastModules=[]; lastCount=count;
-
-    var size = 240, quiet = 4;          // 4-module quiet zone
-    var total = count + quiet*2;
-    var cell = size/total;
-    canvas.width=size; canvas.height=size;
-    ctx.fillStyle=state.bg; ctx.fillRect(0,0,size,size);
-    ctx.fillStyle=state.fg;
-    for(var r=0;r<count;r++){
-      lastModules[r]=[];
-      for(var c=0;c<count;c++){
-        var dark=qr.isDark(r,c); lastModules[r][c]=dark;
-        if(dark) ctx.fillRect(Math.round((c+quiet)*cell), Math.round((r+quiet)*cell), Math.ceil(cell), Math.ceil(cell));
-      }
-    }
-    // draw logo
-    if(state.logo){
-      var img=state.logo;
-      var lw=size*0.22; var lx=(size-lw)/2;
-      // white pad behind logo so it reads cleanly
-      var pad=lw*0.14;
-      ctx.fillStyle='#fff';
-      ctx.fillRect(lx-pad, lx-pad, lw+pad*2, lw+pad*2);
-      ctx.drawImage(img, lx, lx, lw, lw);
-    }
-  }
-
-  // ---- SVG export from stored module matrix ----
-  function buildSVG(){
-    if(!lastModules) return null;
-    var count=lastCount, quiet=4, total=count+quiet*2, cell=10, size=total*cell;
-    var s='<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">';
-    s+='<rect width="'+size+'" height="'+size+'" fill="'+state.bg+'"/>';
-    s+='<path fill="'+state.fg+'" d="';
-    for(var r=0;r<count;r++)for(var c=0;c<count;c++) if(lastModules[r][c]){
-      var x=(c+quiet)*cell, y=(r+quiet)*cell;
-      s+='M'+x+' '+y+'h'+cell+'v'+cell+'h-'+cell+'z';
-    }
-    s+='"/></svg>';
-    return s;
-  }
-
-  // ---- downloads ----
-  function download(href, name){ var a=document.createElement('a'); a.href=href; a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
-  document.getElementById('dl_png').onclick=function(){
-    if(!lastModules) return;
-    // re-render at high resolution for a crisp PNG
-    var big=document.createElement('canvas'); var bctx=big.getContext('2d');
-    var count=lastCount, quiet=4, total=count+quiet*2, scale=12, size=total*scale;
-    big.width=size; big.height=size;
-    bctx.fillStyle=state.bg; bctx.fillRect(0,0,size,size);
-    bctx.fillStyle=state.fg;
-    for(var r=0;r<count;r++)for(var c=0;c<count;c++) if(lastModules[r][c])
-      bctx.fillRect((c+quiet)*scale,(r+quiet)*scale,scale,scale);
-    if(state.logo){var lw=size*0.22,lx=(size-lw)/2,pad=lw*0.14;bctx.fillStyle='#fff';bctx.fillRect(lx-pad,lx-pad,lw+pad*2,lw+pad*2);bctx.drawImage(state.logo,lx,lx,lw,lw);}
-    download(big.toDataURL('image/png'),'qr-code.png');
-    if(window.plausible) plausible('qr_download',{props:{format:'png',type:state.type}});
-  };
-  document.getElementById('dl_svg').onclick=function(){
-    var svg=buildSVG(); if(!svg) return;
-    download('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg),'qr-code.svg');
-    if(window.plausible) plausible('qr_download',{props:{format:'svg',type:state.type}});
-  };
-
-  // ---- wire up type tabs ----
-  document.querySelectorAll('.type').forEach(function(btn){
-    btn.onclick=function(){
-      document.querySelectorAll('.type').forEach(function(b){b.classList.remove('on')});
-      btn.classList.add('on'); state.type=btn.dataset.type;
-      document.querySelectorAll('.field').forEach(function(f){f.classList.toggle('on', f.dataset.f===state.type)});
-      render();
-    };
-  });
-
-  // ---- live input updates ----
-  document.querySelectorAll('input,textarea,select').forEach(function(el){
-    if(el.type!=='color' && el.type!=='file') el.addEventListener('input', render);
-  });
-
-  // ---- colors ----
-  document.getElementById('c_fg').oninput=function(){state.fg=this.value;render()};
-  document.getElementById('c_bg').oninput=function(){state.bg=this.value;render()};
-
-  // ---- logo upload ----
-  document.getElementById('c_logo').onchange=function(e){
-    var file=e.target.files[0]; if(!file) return;
-    var img=new Image();
-    img.onload=function(){ state.logo=img; document.getElementById('c_logo_clear').style.display='inline-block'; render(); };
-    img.src=URL.createObjectURL(file);
-  };
-  document.getElementById('c_logo_clear').onclick=function(){
-    state.logo=null; document.getElementById('c_logo').value=''; this.style.display='none'; render();
-  };
-
-  // initial render — wait for the QR library if it hasn't loaded yet
-  function boot(){
-    if(typeof qrcode!=='undefined'){ render(); }
-    else { setTimeout(boot, 60); }
-  }
-  boot();
-})();
-</script>
 </body>
 </html>
