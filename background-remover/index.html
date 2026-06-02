@@ -212,10 +212,12 @@ function setStatus(html, spin){
   status.innerHTML=(spin?'<span class="spinner"></span>':'')+html;
 }
 
-// Harden the alpha channel: pixels the model is reasonably confident about
-// snap to fully opaque, killing the "ghost subject" semi-transparency,
-// while keeping a narrow soft band at the very edge so cut-outs don't look jagged.
-function hardenAlpha(blob){
+// Solidify the subject. The model returns partial alpha for low-contrast areas
+// (e.g. a dark jacket against a dark background), which renders the subject faded.
+// Anything with meaningful opacity is snapped fully solid; only the faintest edge
+// pixels keep a thin feather so the cut-out isn't jagged. Cutoff sits BELOW the
+// subject's alpha range so real subject regions always become opaque.
+function solidifySubject(blob){
   return new Promise((resolve)=>{
     const img=new Image();
     img.onload=()=>{
@@ -223,16 +225,16 @@ function hardenAlpha(blob){
       c.width=img.naturalWidth; c.height=img.naturalHeight;
       const ctx=c.getContext('2d');
       ctx.drawImage(img,0,0);
-      const data=ctx.getImageData(0,0,c.width,c.height);
-      const a=data.data;
-      const LOW=60, HIGH=180;   // below LOW -> transparent, above HIGH -> solid, between -> stretched
+      const d=ctx.getImageData(0,0,c.width,c.height);
+      const a=d.data;
+      const CUT=22, SOLID=60;   // <=22 gone, >=60 fully solid, thin feather between
       for(let i=3;i<a.length;i+=4){
         const v=a[i];
-        if(v<=LOW) a[i]=0;
-        else if(v>=HIGH) a[i]=255;
-        else a[i]=Math.round(((v-LOW)/(HIGH-LOW))*255);
+        if(v<=CUT) a[i]=0;
+        else if(v>=SOLID) a[i]=255;
+        else a[i]=Math.round(((v-CUT)/(SOLID-CUT))*255);
       }
-      ctx.putImageData(data,0,0);
+      ctx.putImageData(d,0,0);
       c.toBlob(b=>resolve(b),'image/png');
     };
     img.src=URL.createObjectURL(blob);
@@ -249,7 +251,7 @@ function handleFile(f){
   setStatus('Loading the model and removing the background… the first run takes a few seconds.',true);
   if(window.plausible) plausible('bgremove_start');
 
-  removeBackground(f, BG_CONFIG).then(blob=>hardenAlpha(blob)).then(blob=>{
+  removeBackground(f, BG_CONFIG).then(blob=>solidifySubject(blob)).then(blob=>{
     if(resultURL) URL.revokeObjectURL(resultURL);
     resultURL=URL.createObjectURL(blob);
     resultImg.src=resultURL;
