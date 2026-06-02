@@ -62,6 +62,20 @@ button,input{font:inherit}
 .cv .lab{font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
 .imgwrap{min-height:200px;display:flex;align-items:center;justify-content:center;border-radius:8px}
 .imgwrap img{max-width:100%;max-height:360px;border-radius:6px}
+#resultCanvas{max-width:100%;max-height:360px;border-radius:6px;touch-action:none;cursor:crosshair}
+/* brush toolbar */
+.brushbar{display:none;flex-wrap:wrap;align-items:center;gap:14px;margin-top:14px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)}
+.brushbar.on{display:flex}
+.brushmodes{display:flex;gap:6px}
+.bm{appearance:none;border:1px solid var(--border);background:var(--card);color:var(--text2);padding:8px 13px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .12s}
+.bm:hover{border-color:var(--accent);color:var(--accent)}
+.bm.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.brushsize{display:flex;align-items:center;gap:8px}
+.bslabel{font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.brushsize input[type=range]{accent-color:var(--accent);width:120px}
+.brushhint{font-size:12px;color:var(--text3);flex:1;min-width:160px}
+/* floating circle cursor */
+.brushcursor{position:fixed;border:2px solid var(--accent);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);display:none;z-index:50;mix-blend-mode:difference}
 /* transparency checkerboard */
 .checker{background-image:linear-gradient(45deg,#e9e9e9 25%,transparent 25%),linear-gradient(-45deg,#e9e9e9 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e9e9e9 75%),linear-gradient(-45deg,transparent 75%,#e9e9e9 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
 
@@ -126,9 +140,25 @@ button,input{font:inherit}
       </div>
       <div class="cv">
         <div class="lab">Background removed</div>
-        <div class="imgwrap checker" id="resultWrap"><img id="resultImg" alt="result"></div>
+        <div class="imgwrap checker" id="resultWrap">
+          <canvas id="resultCanvas"></canvas>
+        </div>
       </div>
     </div>
+
+    <div class="brushbar" id="brushbar">
+      <div class="brushmodes">
+        <button class="bm on" id="modeErase" title="Erase parts the AI kept">🧽 Erase</button>
+        <button class="bm" id="modeRestore" title="Paint back parts the AI removed">↩ Restore</button>
+      </div>
+      <div class="brushsize">
+        <span class="bslabel">Brush</span>
+        <input type="range" id="brushSize" min="6" max="120" value="36">
+      </div>
+      <button class="btn" id="undoBtn" disabled>Undo</button>
+      <span class="brushhint">Drag on the image to edit. Erase removes; Restore paints the original back.</span>
+    </div>
+
     <div class="controls">
       <button class="btn primary" id="dlBtn" disabled>Download PNG</button>
       <button class="btn" id="newBtn">Try another image</button>
@@ -164,6 +194,9 @@ button,input{font:inherit}
 <li>Preview the result against white and dark backgrounds (the buttons above) to check the edges before downloading.</li>
 </ul>
 
+<h2>Fine-tune the result by hand</h2>
+<p>Automatic removal gets most images right, but tricky edges sometimes need a touch-up. After the background is removed, use the built-in brush to clean it up: <strong>Erase</strong> paints away anything the tool left behind, and <strong>Restore</strong> brings back any part of the subject that was removed by mistake. Adjust the brush size with the slider, and use Undo to step back. All editing happens live on the image before you download.</p>
+
 <h2>Is it really free?</h2>
 <p>Yes. There's no signup, no watermark, and no limit on how many images you can process. Because everything runs in your browser, there are no per-image costs and nothing to pay.</p>
 </section>
@@ -194,11 +227,21 @@ const file=document.getElementById('file');
 const status=document.getElementById('status');
 const stage=document.getElementById('stage');
 const origImg=document.getElementById('origImg');
-const resultImg=document.getElementById('resultImg');
+const canvas=document.getElementById('resultCanvas');
+const cctx=canvas.getContext('2d');
 const resultWrap=document.getElementById('resultWrap');
 const dlBtn=document.getElementById('dlBtn');
 const newBtn=document.getElementById('newBtn');
-let resultURL=null;
+const brushbar=document.getElementById('brushbar');
+const modeErase=document.getElementById('modeErase');
+const modeRestore=document.getElementById('modeRestore');
+const brushSize=document.getElementById('brushSize');
+const undoBtn=document.getElementById('undoBtn');
+
+let origBitmap=null;      // the source photo, for Restore sampling
+let brushMode='erase';
+let undoStack=[];         // ImageData snapshots
+const MAX_UNDO=15;
 
 // use the higher-quality model for sharper, more confident masks
 const BG_CONFIG = {
@@ -212,11 +255,7 @@ function setStatus(html, spin){
   status.innerHTML=(spin?'<span class="spinner"></span>':'')+html;
 }
 
-// Solidify the subject. The model returns partial alpha for low-contrast areas
-// (e.g. a dark jacket against a dark background), which renders the subject faded.
-// Anything with meaningful opacity is snapped fully solid; only the faintest edge
-// pixels keep a thin feather so the cut-out isn't jagged. Cutoff sits BELOW the
-// subject's alpha range so real subject regions always become opaque.
+// Solidify the subject (same fix as before): snap meaningful alpha to fully solid.
 function solidifySubject(blob){
   return new Promise((resolve)=>{
     const img=new Image();
@@ -227,7 +266,7 @@ function solidifySubject(blob){
       ctx.drawImage(img,0,0);
       const d=ctx.getImageData(0,0,c.width,c.height);
       const a=d.data;
-      const CUT=22, SOLID=60;   // <=22 gone, >=60 fully solid, thin feather between
+      const CUT=22, SOLID=60;
       for(let i=3;i<a.length;i+=4){
         const v=a[i];
         if(v<=CUT) a[i]=0;
@@ -235,10 +274,18 @@ function solidifySubject(blob){
         else a[i]=Math.round(((v-CUT)/(SOLID-CUT))*255);
       }
       ctx.putImageData(d,0,0);
-      c.toBlob(b=>resolve(b),'image/png');
+      resolve(c);   // resolve with the canvas itself
     };
     img.src=URL.createObjectURL(blob);
   });
+}
+
+function pushUndo(){
+  try{
+    undoStack.push(cctx.getImageData(0,0,canvas.width,canvas.height));
+    if(undoStack.length>MAX_UNDO) undoStack.shift();
+    undoBtn.disabled=false;
+  }catch(e){}
 }
 
 function handleFile(f){
@@ -246,17 +293,22 @@ function handleFile(f){
   drop.style.display='none';
   stage.classList.add('on');
   origImg.src=URL.createObjectURL(f);
-  resultImg.removeAttribute('src');
-  dlBtn.disabled=true;
+  dlBtn.disabled=true; brushbar.classList.remove('on');
+  undoStack=[]; undoBtn.disabled=true;
   setStatus('Loading the model and removing the background… the first run takes a few seconds.',true);
   if(window.plausible) plausible('bgremove_start');
 
-  removeBackground(f, BG_CONFIG).then(blob=>solidifySubject(blob)).then(blob=>{
-    if(resultURL) URL.revokeObjectURL(resultURL);
-    resultURL=URL.createObjectURL(blob);
-    resultImg.src=resultURL;
-    dlBtn.disabled=false;
-    setStatus('Done. Preview it against different backgrounds, then download your transparent PNG.',false);
+  // keep the source photo for Restore
+  const ob=new Image();
+  ob.onload=()=>{ origBitmap=ob; };
+  ob.src=URL.createObjectURL(f);
+
+  removeBackground(f, BG_CONFIG).then(blob=>solidifySubject(blob)).then(resultCv=>{
+    canvas.width=resultCv.width; canvas.height=resultCv.height;
+    cctx.clearRect(0,0,canvas.width,canvas.height);
+    cctx.drawImage(resultCv,0,0);
+    dlBtn.disabled=false; brushbar.classList.add('on');
+    setStatus('Done. Use the brush below to clean up edges, then download your PNG.',false);
     if(window.plausible) plausible('bgremove_done');
   }).catch(err=>{
     console.error(err);
@@ -271,16 +323,90 @@ drop.ondragleave=()=>drop.classList.remove('drag');
 drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('drag'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
 
 dlBtn.onclick=()=>{
-  if(!resultURL) return;
-  const a=document.createElement('a'); a.href=resultURL; a.download='background-removed.png';
-  document.body.appendChild(a); a.click(); a.remove();
+  canvas.toBlob(b=>{
+    const url=URL.createObjectURL(b);
+    const a=document.createElement('a'); a.href=url; a.download='background-removed.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  },'image/png');
   if(window.plausible) plausible('bgremove_download');
 };
 newBtn.onclick=()=>{
   stage.classList.remove('on'); drop.style.display='block';
-  file.value=''; setStatus(null); dlBtn.disabled=true;
-  if(resultURL){ URL.revokeObjectURL(resultURL); resultURL=null; }
+  file.value=''; setStatus(null); dlBtn.disabled=true; brushbar.classList.remove('on');
+  cctx.clearRect(0,0,canvas.width,canvas.height); origBitmap=null; undoStack=[]; undoBtn.disabled=true;
 };
+
+// ---- brush editor ----
+modeErase.onclick=()=>{ brushMode='erase'; modeErase.classList.add('on'); modeRestore.classList.remove('on'); };
+modeRestore.onclick=()=>{ brushMode='restore'; modeRestore.classList.add('on'); modeErase.classList.remove('on'); };
+undoBtn.onclick=()=>{
+  if(!undoStack.length) return;
+  const img=undoStack.pop();
+  cctx.putImageData(img,0,0);
+  if(!undoStack.length) undoBtn.disabled=true;
+};
+
+// floating circle cursor sized to the brush
+const cursor=document.createElement('div'); cursor.className='brushcursor'; document.body.appendChild(cursor);
+function moveCursor(clientX,clientY){
+  const rect=canvas.getBoundingClientRect();
+  const scale=rect.width/canvas.width;      // displayed px per canvas px
+  const d=brushSize.value*scale;
+  cursor.style.width=d+'px'; cursor.style.height=d+'px';
+  cursor.style.left=clientX+'px'; cursor.style.top=clientY+'px';
+}
+
+let painting=false, painted=false;
+
+function canvasPos(clientX,clientY){
+  const rect=canvas.getBoundingClientRect();
+  return {
+    x:(clientX-rect.left)/rect.width*canvas.width,
+    y:(clientY-rect.top)/rect.height*canvas.height
+  };
+}
+
+function stamp(x,y){
+  const r=+brushSize.value/2;
+  if(brushMode==='erase'){
+    cctx.save();
+    cctx.globalCompositeOperation='destination-out';
+    cctx.beginPath(); cctx.arc(x,y,r,0,Math.PI*2); cctx.fill();
+    cctx.restore();
+  }else if(brushMode==='restore' && origBitmap){
+    // paint back the original photo, clipped to a circle
+    cctx.save();
+    cctx.beginPath(); cctx.arc(x,y,r,0,Math.PI*2); cctx.closePath(); cctx.clip();
+    cctx.drawImage(origBitmap,0,0,canvas.width,canvas.height);
+    cctx.restore();
+  }
+}
+
+function startPaint(clientX,clientY){
+  if(!stage.classList.contains('on')||dlBtn.disabled) return;
+  pushUndo(); painting=true; painted=false;
+  const p=canvasPos(clientX,clientY); stamp(p.x,p.y); painted=true;
+}
+function movePaint(clientX,clientY){
+  moveCursor(clientX,clientY);
+  if(!painting) return;
+  const p=canvasPos(clientX,clientY); stamp(p.x,p.y);
+}
+function endPaint(){
+  if(painting && !painted) undoStack.pop();   // discard empty
+  painting=false;
+}
+
+canvas.addEventListener('mouseenter',()=>{ cursor.style.display='block'; });
+canvas.addEventListener('mouseleave',()=>{ cursor.style.display='none'; });
+canvas.addEventListener('mousedown',e=>{ startPaint(e.clientX,e.clientY); });
+window.addEventListener('mousemove',e=>{ movePaint(e.clientX,e.clientY); });
+window.addEventListener('mouseup',endPaint);
+// touch
+canvas.addEventListener('touchstart',e=>{ e.preventDefault(); const t=e.touches[0]; cursor.style.display='block'; startPaint(t.clientX,t.clientY); },{passive:false});
+canvas.addEventListener('touchmove',e=>{ e.preventDefault(); const t=e.touches[0]; movePaint(t.clientX,t.clientY); },{passive:false});
+canvas.addEventListener('touchend',e=>{ e.preventDefault(); cursor.style.display='none'; endPaint(); },{passive:false});
 
 // background preview toggle
 const bgC=document.getElementById('bgChecker'), bgW=document.getElementById('bgWhite'), bgD=document.getElementById('bgDark');
