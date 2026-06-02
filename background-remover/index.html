@@ -200,10 +200,43 @@ const dlBtn=document.getElementById('dlBtn');
 const newBtn=document.getElementById('newBtn');
 let resultURL=null;
 
+// use the higher-quality model for sharper, more confident masks
+const BG_CONFIG = {
+  model: 'isnet',                 // highest-quality model (slower, much better edges)
+  output: { format: 'image/png', quality: 1.0 }
+};
+
 function setStatus(html, spin){
   if(!html){ status.classList.remove('on'); status.innerHTML=''; return; }
   status.classList.add('on');
   status.innerHTML=(spin?'<span class="spinner"></span>':'')+html;
+}
+
+// Harden the alpha channel: pixels the model is reasonably confident about
+// snap to fully opaque, killing the "ghost subject" semi-transparency,
+// while keeping a narrow soft band at the very edge so cut-outs don't look jagged.
+function hardenAlpha(blob){
+  return new Promise((resolve)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');
+      c.width=img.naturalWidth; c.height=img.naturalHeight;
+      const ctx=c.getContext('2d');
+      ctx.drawImage(img,0,0);
+      const data=ctx.getImageData(0,0,c.width,c.height);
+      const a=data.data;
+      const LOW=60, HIGH=180;   // below LOW -> transparent, above HIGH -> solid, between -> stretched
+      for(let i=3;i<a.length;i+=4){
+        const v=a[i];
+        if(v<=LOW) a[i]=0;
+        else if(v>=HIGH) a[i]=255;
+        else a[i]=Math.round(((v-LOW)/(HIGH-LOW))*255);
+      }
+      ctx.putImageData(data,0,0);
+      c.toBlob(b=>resolve(b),'image/png');
+    };
+    img.src=URL.createObjectURL(blob);
+  });
 }
 
 function handleFile(f){
@@ -216,7 +249,7 @@ function handleFile(f){
   setStatus('Loading the model and removing the background… the first run takes a few seconds.',true);
   if(window.plausible) plausible('bgremove_start');
 
-  removeBackground(f).then(blob=>{
+  removeBackground(f, BG_CONFIG).then(blob=>hardenAlpha(blob)).then(blob=>{
     if(resultURL) URL.revokeObjectURL(resultURL);
     resultURL=URL.createObjectURL(blob);
     resultImg.src=resultURL;
